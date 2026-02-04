@@ -695,7 +695,6 @@
 
         let subjectsData = {};
         let currentClass = null;
-        let progressData = JSON.parse(localStorage.getItem('smartPathshala_progress')) || {};
         let currentSubject = null;
         let currentChapterNode = null; 
         let activeTab = 'text'; 
@@ -836,7 +835,7 @@
             if(node.children) node.children.forEach(ensureContentStructure);
         }
 
-        function saveData() { localStorage.setItem('smartPathshalaData_v2', JSON.stringify(subjectsData)); localStorage.setItem('smartPathshala_progress', JSON.stringify(progressData)); }
+        function saveData() { localStorage.setItem('smartPathshalaData_v2', JSON.stringify(subjectsData)); }
         
         // UPDATED: Reset now re-fetches default data
         function resetData() { 
@@ -1044,18 +1043,6 @@
 
                 let controls = isEditMode ? `<div class="absolute top-2 right-2 btn-visible-anim"><button onclick="event.stopPropagation(); editSubject('${sub.id}')" class="p-1 bg-blue-50 text-blue-600 rounded-full"><i data-lucide="pencil" class="h-3 w-3"></i></button></div>` : '';
 
-                
-                const progress = calculateProgress(currentClass.id, sub.id, sub.chapters);
-                const progressBar = `
-                    <div class="mt-3">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs text-gray-500">অগ্রগতি</span>
-                            <span class="text-xs font-semibold ${progress === 100 ? 'text-green-600' : 'text-indigo-600'}" data-progress-text="${sub.id}">${progress}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="h-full rounded-full transition-all duration-300 ${progress === 100 ? 'bg-green-500' : 'bg-indigo-600'}" data-progress-bar="${sub.id}" style="width: ${progress}%"></div>
-                        </div>
-                    </div>`;
                 el.innerHTML = `${controls}
                     <div class="flex items-center gap-3">
                         <div class="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"><i data-lucide="${sub.icon}" class="h-5 w-5"></i></div>
@@ -1110,10 +1097,7 @@
             const isActive = currentChapterNode && currentChapterNode.id === node.id;
             const padding = 0.5 + (depth * 1.2);
 
-            const isCompleted = isChapterCompleted(currentClass.id, currentSubject.id, node.id);
-            let checkbox = isEditMode 
-                ? `<input type="checkbox" ${isSelected?'checked':''} class="mr-2 accent-indigo-600 h-4 w-4" onclick="toggleSelection('${node.id}'); renderChapters(); event.stopPropagation();">`
-                : `<input type="checkbox" ${isCompleted?'checked':''} data-chapter-checkbox="${node.id}" class="mr-2 accent-indigo-600 h-4 w-4" onclick="toggleChapterCompletion('${node.id}'); event.stopPropagation();" title="সম্পন্ন চিহ্নিত করুন">`;
+            let checkbox = isEditMode ? `<input type="checkbox" ${isSelected?'checked':''} class="mr-2 accent-indigo-600 h-4 w-4" onclick="toggleSelection('${node.id}'); renderChapters(); event.stopPropagation();">` : '';
             
             div.innerHTML = `
             <div class="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer mb-1 select-none ${isActive ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : ''}" 
@@ -1728,61 +1712,6 @@
         }
 
         window.onload = init;
-
-        // --- PROGRESS TRACKING FUNCTIONS ---
-        function toggleChapterCompletion(chapterId) {
-            if (!progressData[currentClass.id]) progressData[currentClass.id] = {};
-            if (!progressData[currentClass.id][currentSubject.id]) progressData[currentClass.id][currentSubject.id] = {};
-            
-            progressData[currentClass.id][currentSubject.id][chapterId] = !progressData[currentClass.id][currentSubject.id][chapterId];
-            saveData();
-            
-            // Update UI
-            const checkbox = document.querySelector(`[data-chapter-checkbox="${chapterId}"]`);
-            if (checkbox) checkbox.checked = progressData[currentClass.id][currentSubject.id][chapterId];
-            
-            // Update progress bar in subject view if visible
-            if (!document.getElementById('view-subjects').classList.contains('hidden')) {
-                updateSubjectProgress(currentSubject.id);
-            }
-        }
-        
-        function isChapterCompleted(classId, subjectId, chapterId) {
-            return progressData[classId]?.[subjectId]?.[chapterId] || false;
-        }
-        
-        function calculateProgress(classId, subjectId, chapters) {
-            if (!chapters || chapters.length === 0) return 0;
-            
-            let total = 0;
-            let completed = 0;
-            
-            function countChapters(nodes) {
-                nodes.forEach(node => {
-                    total++;
-                    if (isChapterCompleted(classId, subjectId, node.id)) completed++;
-                    if (node.children && node.children.length > 0) countChapters(node.children);
-                });
-            }
-            
-            countChapters(chapters);
-            return total > 0 ? Math.round((completed / total) * 100) : 0;
-        }
-        
-        function updateSubjectProgress(subjectId) {
-            const subject = subjectsData[currentClass.id].find(s => s.id === subjectId);
-            if (!subject) return;
-            
-            const progress = calculateProgress(currentClass.id, subjectId, subject.chapters);
-            const progressBar = document.querySelector(`[data-progress-bar="${subjectId}"]`);
-            const progressText = document.querySelector(`[data-progress-text="${subjectId}"]`);
-            
-            if (progressBar) {
-                progressBar.style.width = `${progress}%`;
-                progressBar.className = `h-full rounded-full transition-all duration-300 ${progress === 100 ? 'bg-green-500' : 'bg-indigo-600'}`;
-            }
-            if (progressText) progressText.innerText = `${progress}%`;
-        }
     </script>
 </body>
 </html>
