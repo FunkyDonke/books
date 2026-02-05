@@ -32,6 +32,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Marked.js for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Chart.js for Statistics Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
     <style>
         body { font-family: 'Hind Siliguri', sans-serif; overflow-x: hidden; }
@@ -181,6 +183,9 @@
                         </button>
                         <button onclick="exportData()" class="text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-800 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1">
                             <i data-lucide="download" class="h-4 w-4"></i> ব্যাকআপ
+                        </button>
+                        <button onclick="openStatsModal()" class="text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-gray-800 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1">
+                            <i data-lucide="bar-chart-3" class="h-4 w-4"></i> পরিসংখ্যান
                         </button>
                     </div>
                     <button onclick="toggleTheme()" class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
@@ -681,6 +686,24 @@
         </div>
     </div>
 
+    <!-- Statistics Modal -->
+    <div id="modal-stats" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-2xl rounded-xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="h-6 w-6 text-purple-600"></i>
+                    পড়াশোনার পরিসংখ্যান
+                </h3>
+                <button onclick="closeModal('modal-stats')" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+            <div id="stats-modal-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // --- DATA & INITIALIZATION ---
@@ -696,6 +719,7 @@
         let subjectsData = {};
         let currentClass = null;
         let progressData = JSON.parse(localStorage.getItem('smartPathshala_progress')) || {};
+        let statsData = JSON.parse(localStorage.getItem('smartPathshala_stats')) || { studyTime: {}, streak: { current: 0, best: 0, lastStudyDate: null }, sessionsLog: [], goals: { daily: 30 } };
         let currentSubject = null;
         let currentChapterNode = null; 
         let activeTab = 'text'; 
@@ -836,7 +860,7 @@
             if(node.children) node.children.forEach(ensureContentStructure);
         }
 
-        function saveData() { localStorage.setItem('smartPathshalaData_v2', JSON.stringify(subjectsData)); localStorage.setItem('smartPathshala_progress', JSON.stringify(progressData)); }
+        function saveData() { localStorage.setItem('smartPathshalaData_v2', JSON.stringify(subjectsData)); localStorage.setItem('smartPathshala_progress', JSON.stringify(progressData)); localStorage.setItem('smartPathshala_stats', JSON.stringify(statsData)); }
         
         // UPDATED: Reset now re-fetches default data
         function resetData() { 
@@ -970,6 +994,10 @@
         }
         function showSubjects() {
              if(currentClass) {
+                 // End study session when leaving chapter view
+                 if (studySessionStart) {
+                     endStudySession();
+                 }
                  hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');
                  isEditMode=false; selectedIds.clear(); updateEditModeUI(); renderSubjects();
              }
@@ -1015,7 +1043,6 @@
         }
 
         function renderSubjectSection(container, title, items) {
-            console.log('🎯 Progress Tracker Active - renderSubjectSection called');
             if(items.length===0) return;
             if(title) {
                 const h3 = document.createElement('h3');
@@ -1047,7 +1074,6 @@
 
                 
                 const progress = calculateProgress(currentClass.id, sub.id, sub.chapters);
-                console.log("Progress for", sub.name, ":", progress, "%");
                 const progressBar = `
                     <div class="mt-3">
                         <div class="flex justify-between items-center mb-1">
@@ -1158,6 +1184,11 @@
             if(isEditMode && e && e.target && e.target.tagName === 'INPUT') return;
             const node = findNode(currentSubject.chapters, id);
             
+            // End previous study session
+            if (studySessionStart) {
+                endStudySession();
+            }
+            
             if(node.children && node.children.length > 0) {
                 const el = document.getElementById(`acc-${id}`);
                 if(el.classList.contains('open')) { el.classList.remove('open'); openAccordionIds.delete(id); }
@@ -1170,7 +1201,10 @@
             document.getElementById('content-empty').classList.add('hidden');
             document.getElementById('content-tabs').classList.remove('hidden');
             renderChapters(); 
-            switchTab(activeTab); 
+            switchTab(activeTab);
+            
+            // Start new study session
+            startStudySession(currentSubject.id, id);
         }
 
         function handleChapDragOver(e) {
@@ -1561,7 +1595,11 @@
             if (isEditMode && selectedIds.size > 0) { bar.classList.remove('hidden'); countSpan.innerText = selectedIds.size; } else { bar.classList.add('hidden'); }
         }
         function openModal(id) { document.getElementById(id).classList.remove('opacity-0', 'pointer-events-none'); document.body.classList.add('modal-active'); }
-        function closeModal(id) { document.getElementById(id).classList.add('opacity-0', 'pointer-events-none'); document.body.classList.remove('modal-active'); }
+        function closeModal(id) { 
+            if (id === 'modal-stats') destroyCharts(); 
+            document.getElementById(id).classList.add('opacity-0', 'pointer-events-none'); 
+            document.body.classList.remove('modal-active'); 
+        }
         let confirmCb = null;
         function openConfirmModal(msg, cb) { document.getElementById('confirm-modal-text').innerText = msg; confirmCb = cb; openModal('modal-confirm'); }
         document.getElementById('confirm-modal-btn').onclick = () => { if(confirmCb) confirmCb(); closeModal('modal-confirm'); };
@@ -1731,6 +1769,488 @@
         }
 
         window.onload = init;
+
+        // --- CHART RENDERING FUNCTIONS ---
+        let charts = {}; // Store chart instances
+        
+        function destroyCharts() {
+            for (let key in charts) {
+                if (charts[key]) {
+                    charts[key].destroy();
+                    delete charts[key];
+                }
+            }
+        }
+        
+        function renderWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart');
+            if (!ctx) return;
+            
+            // Get last 7 days data
+            const days = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
+            const today = new Date();
+            const labels = [];
+            const data = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toDateString();
+                labels.push(days[date.getDay()]);
+                
+                let dayMinutes = 0;
+                statsData.sessionsLog.forEach(session => {
+                    if (new Date(session.date).toDateString() === dateStr) {
+                        dayMinutes += Math.round(session.duration / 60);
+                    }
+                });
+                data.push(dayMinutes);
+            }
+            
+            if (charts.weekly) charts.weekly.destroy();
+            charts.weekly = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'মিনিট',
+                        data: data,
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 10,
+                            borderRadius: 6,
+                            callbacks: {
+                                label: (context) => `${context.parsed.y} মিনিট`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280' }
+                        },
+                        x: {
+                            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderSubjectChart() {
+            const ctx = document.getElementById('subjectChart');
+            if (!ctx || !currentClass) return;
+            
+            const subjects = subjectsData[currentClass.id] || [];
+            const labels = [];
+            const data = [];
+            const colors = [
+                'rgba(99, 102, 241, 0.7)',   // Indigo
+                'rgba(16, 185, 129, 0.7)',   // Green
+                'rgba(249, 115, 22, 0.7)',   // Orange
+                'rgba(168, 85, 247, 0.7)',   // Purple
+                'rgba(236, 72, 153, 0.7)',   // Pink
+                'rgba(59, 130, 246, 0.7)',   // Blue
+                'rgba(245, 158, 11, 0.7)',   // Amber
+                'rgba(239, 68, 68, 0.7)'     // Red
+            ];
+            
+            subjects.forEach((sub, idx) => {
+                const key = `${currentClass.id}_${sub.id}`;
+                const minutes = Math.round((statsData.studyTime[key] || 0) / 60);
+                if (minutes > 0) {
+                    labels.push(sub.name.length > 15 ? sub.name.substring(0, 15) + '...' : sub.name);
+                    data.push(minutes);
+                }
+            });
+            
+            if (data.length === 0) {
+                ctx.parentElement.innerHTML = '<p class="text-sm text-gray-500 text-center py-8">এখনও কোনো ডাটা নেই</p>';
+                return;
+            }
+            
+            if (charts.subject) charts.subject.destroy();
+            charts.subject = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 8,
+                                font: { size: 10 },
+                                color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 10,
+                            borderRadius: 6,
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value}মি (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+            
+            // Get last 14 days data
+            const labels = [];
+            const data = [];
+            const today = new Date();
+            
+            for (let i = 13; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toDateString();
+                const dayMonth = `${date.getDate()}/${date.getMonth() + 1}`;
+                labels.push(dayMonth);
+                
+                let dayMinutes = 0;
+                statsData.sessionsLog.forEach(session => {
+                    if (new Date(session.date).toDateString() === dateStr) {
+                        dayMinutes += Math.round(session.duration / 60);
+                    }
+                });
+                data.push(dayMinutes);
+            }
+            
+            if (charts.trend) charts.trend.destroy();
+            charts.trend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'মিনিট',
+                        data: data,
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: 'rgba(16, 185, 129, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 10,
+                            borderRadius: 6,
+                            callbacks: {
+                                title: (items) => `তারিখ: ${items[0].label}`,
+                                label: (context) => `${context.parsed.y} মিনিট`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { 
+                                color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280',
+                                stepSize: 10
+                            }
+                        },
+                        x: {
+                            ticks: { 
+                                color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- STUDY STATISTICS FUNCTIONS ---
+        let studySessionStart = null;
+        let currentStudySubject = null;
+        let currentStudyChapter = null;
+        
+        function startStudySession(subjectId, chapterId) {
+            studySessionStart = Date.now();
+            currentStudySubject = subjectId;
+            currentStudyChapter = chapterId;
+            updateStreak();
+        }
+        
+        function endStudySession() {
+            if (!studySessionStart || !currentStudySubject) return;
+            
+            const duration = Math.floor((Date.now() - studySessionStart) / 1000); // seconds
+            const key = `${currentClass.id}_${currentStudySubject}`;
+            
+            if (!statsData.studyTime[key]) statsData.studyTime[key] = 0;
+            statsData.studyTime[key] += duration;
+            
+            // Log session
+            statsData.sessionsLog.push({
+                date: new Date().toISOString(),
+                classId: currentClass.id,
+                subjectId: currentStudySubject,
+                chapterId: currentStudyChapter,
+                duration: duration
+            });
+            
+            // Keep only last 100 sessions
+            if (statsData.sessionsLog.length > 100) {
+                statsData.sessionsLog = statsData.sessionsLog.slice(-100);
+            }
+            
+            saveData();
+            studySessionStart = null;
+            currentStudySubject = null;
+            currentStudyChapter = null;
+        }
+        
+        function updateStreak() {
+            const today = new Date().toDateString();
+            const lastDate = statsData.streak.lastStudyDate;
+            
+            if (!lastDate) {
+                // First time studying
+                statsData.streak.current = 1;
+                statsData.streak.best = 1;
+                statsData.streak.lastStudyDate = today;
+            } else if (lastDate === today) {
+                // Already studied today
+                return;
+            } else {
+                const lastStudyDate = new Date(lastDate);
+                const todayDate = new Date(today);
+                const diffDays = Math.floor((todayDate - lastStudyDate) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    // Consecutive day
+                    statsData.streak.current++;
+                    if (statsData.streak.current > statsData.streak.best) {
+                        statsData.streak.best = statsData.streak.current;
+                    }
+                } else {
+                    // Streak broken
+                    statsData.streak.current = 1;
+                }
+                statsData.streak.lastStudyDate = today;
+            }
+            saveData();
+        }
+        
+        function getStudyTime(classId, subjectId) {
+            const key = `${classId}_${subjectId}`;
+            const seconds = statsData.studyTime[key] || 0;
+            return formatTime(seconds);
+        }
+        
+        function getTotalStudyTime() {
+            let total = 0;
+            for (let key in statsData.studyTime) {
+                total += statsData.studyTime[key];
+            }
+            return formatTime(total);
+        }
+        
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            
+            if (hours > 0) {
+                return `${hours}ঘ ${minutes}মি`;
+            } else if (minutes > 0) {
+                return `${minutes}মি`;
+            } else {
+                return `${seconds}সে`;
+            }
+        }
+        
+        function getTodayStudyTime() {
+            const today = new Date().toDateString();
+            let todaySeconds = 0;
+            
+            statsData.sessionsLog.forEach(session => {
+                const sessionDate = new Date(session.date).toDateString();
+                if (sessionDate === today) {
+                    todaySeconds += session.duration;
+                }
+            });
+            
+            return formatTime(todaySeconds);
+        }
+        
+        function getWeeklyStats() {
+            const now = new Date();
+            const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+            let weeklySeconds = 0;
+            let sessionCount = 0;
+            
+            statsData.sessionsLog.forEach(session => {
+                const sessionDate = new Date(session.date);
+                if (sessionDate >= weekAgo) {
+                    weeklySeconds += session.duration;
+                    sessionCount++;
+                }
+            });
+            
+            return {
+                time: formatTime(weeklySeconds),
+                sessions: sessionCount
+            };
+        }
+        
+        function openStatsModal() {
+            const totalTime = getTotalStudyTime();
+            const todayTime = getTodayStudyTime();
+            const weekStats = getWeeklyStats();
+            const streak = statsData.streak;
+            
+            // Count total completed chapters
+            let totalCompleted = 0;
+            for (let classId in progressData) {
+                for (let subjectId in progressData[classId]) {
+                    for (let chapterId in progressData[classId][subjectId]) {
+                        if (progressData[classId][subjectId][chapterId]) {
+                            totalCompleted++;
+                        }
+                    }
+                }
+            }
+            
+            // Get subject-wise stats for current class
+            let subjectStats = '';
+            if (currentClass) {
+                const subjects = subjectsData[currentClass.id] || [];
+                subjects.forEach(sub => {
+                    const time = getStudyTime(currentClass.id, sub.id);
+                    const progress = calculateProgress(currentClass.id, sub.id, sub.chapters);
+                    subjectStats += `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                            <span class="text-sm font-medium">${sub.name}</span>
+                            <div class="text-right">
+                                <div class="text-sm font-bold text-indigo-600 dark:text-indigo-400">${time}</div>
+                                <div class="text-xs text-gray-500">${progress}% সম্পন্ন</div>
+                            </div>
+                        </div>`;
+                });
+            }
+            
+            document.getElementById('stats-modal-content').innerHTML = `
+                <div class="space-y-6">
+                    <!-- Overview Cards -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-4 rounded-xl">
+                            <div class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mb-1">মোট পড়ার সময়</div>
+                            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-300">${totalTime}</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-xl">
+                            <div class="text-xs text-green-600 dark:text-green-400 font-semibold mb-1">আজকের পড়া</div>
+                            <div class="text-2xl font-bold text-green-700 dark:text-green-300">${todayTime}</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-xl">
+                            <div class="text-xs text-orange-600 dark:text-orange-400 font-semibold mb-1">স্ট্রিক 🔥</div>
+                            <div class="text-2xl font-bold text-orange-700 dark:text-orange-300">${streak.current} দিন</div>
+                            <div class="text-xs text-orange-500 mt-1">সর্বোচ্চ: ${streak.best} দিন</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-xl">
+                            <div class="text-xs text-purple-600 dark:text-purple-400 font-semibold mb-1">সম্পন্ন অধ্যায়</div>
+                            <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">${totalCompleted}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Weekly Activity Chart -->
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                            <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">সাপ্তাহিক কার্যকলাপ</h4>
+                            <div style="position: relative; height: 200px;">
+                                <canvas id="weeklyChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Subject Distribution Chart -->
+                        ${currentClass ? `
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                            <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">বিষয়ভিত্তিক সময়</h4>
+                            <div style="position: relative; height: 200px;">
+                                <canvas id="subjectChart"></canvas>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Study Trend Chart -->
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">পড়াশোনার ধারা (শেষ ১৪ দিন)</h4>
+                        <div style="position: relative; height: 180px;">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    ${subjectStats ? `
+                    <!-- Subject-wise Stats -->
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">বিষয়ভিত্তিক পরিসংখ্যান</h4>
+                        <div class="space-y-1 max-h-64 overflow-y-auto">
+                            ${subjectStats}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            openModal('modal-stats');
+            
+            // Render charts after modal opens and DOM is ready
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    renderWeeklyChart();
+                    if (currentClass) renderSubjectChart();
+                    renderTrendChart();
+                }, 200);
+            });
+        }
 
         // --- PROGRESS TRACKING FUNCTIONS ---
         function toggleChapterCompletion(chapterId) {
