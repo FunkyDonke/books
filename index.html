@@ -1928,6 +1928,106 @@
         }
         
         function renderTrendChart() {
+
+
+        let monthViewOffset = 0; // Track which 12-month period we're viewing
+        
+        function renderMonthlyChart(offset = 0) {
+            const ctx = document.getElementById('monthlyChart');
+            if (!ctx) return;
+            
+            // Get 12 months data with offset
+            const months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+            const today = new Date();
+            const labels = [];
+            const data = [];
+            
+            // Calculate start month based on offset
+            const startMonthOffset = offset * 12;
+            
+            for (let i = 11; i >= 0; i--) {
+                const monthIndex = today.getMonth() - i - startMonthOffset;
+                const date = new Date(today.getFullYear(), monthIndex, 1);
+                const monthName = months[date.getMonth()];
+                const year = date.getFullYear();
+                labels.push(`${monthName} ${year}`);
+                
+                let monthMinutes = 0;
+                statsData.sessionsLog.forEach(session => {
+                    const sessionDate = new Date(session.date);
+                    if (sessionDate.getMonth() === date.getMonth() && sessionDate.getFullYear() === date.getFullYear()) {
+                        monthMinutes += Math.round(session.duration / 60);
+                    }
+                });
+                data.push(monthMinutes);
+            }
+            
+            // Update label
+            const labelEl = document.getElementById('monthViewLabel');
+            if (labelEl) {
+                if (offset === 0) {
+                    labelEl.innerText = 'শেষ ১২ মাস';
+                } else {
+                    const endDate = new Date(today.getFullYear(), today.getMonth() - startMonthOffset, 1);
+                    const startDate = new Date(today.getFullYear(), today.getMonth() - 11 - startMonthOffset, 1);
+                    labelEl.innerText = `${months[startDate.getMonth()]} ${startDate.getFullYear()} - ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+                }
+            }
+            
+            if (charts.monthly) charts.monthly.destroy();
+            charts.monthly = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'মিনিট',
+                        data: data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 10,
+                            borderRadius: 6,
+                            callbacks: {
+                                label: (context) => `${context.parsed.y} মিনিট`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280' }
+                        },
+                        x: {
+                            ticks: { 
+                                color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280',
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 9 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function changeMonthView(direction) {
+            monthViewOffset += direction;
+            // Don't go into future
+            if (monthViewOffset < 0) monthViewOffset = 0;
+            renderMonthlyChart(monthViewOffset);
+        }
+
             const ctx = document.getElementById('trendChart');
             if (!ctx) return;
             
@@ -2096,13 +2196,14 @@
         function formatTime(seconds) {
             const hours = Math.floor(seconds / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
             
             if (hours > 0) {
-                return `${hours}ঘ ${minutes}মি`;
+                return minutes > 0 ? `${hours} ঘন্টা ${minutes} মিনিট` : `${hours} ঘন্টা`;
             } else if (minutes > 0) {
-                return `${minutes}মি`;
+                return `${minutes} মিনিট`;
             } else {
-                return `${seconds}সে`;
+                return `${secs} সেকেন্ড`;
             }
         }
         
@@ -2146,38 +2247,134 @@
             const weekStats = getWeeklyStats();
             const streak = statsData.streak;
             
-            // Count total completed chapters
+            // Count completed chapters - ONLY from current class and NON-HIDDEN subjects
             let totalCompleted = 0;
-            for (let classId in progressData) {
-                for (let subjectId in progressData[classId]) {
-                    for (let chapterId in progressData[classId][subjectId]) {
-                        if (progressData[classId][subjectId][chapterId]) {
-                            totalCompleted++;
-                        }
-                    }
-                }
-            }
+            let completedChaptersList = [];
             
-            // Get subject-wise stats for current class
-            let subjectStats = '';
             if (currentClass) {
                 const subjects = subjectsData[currentClass.id] || [];
                 subjects.forEach(sub => {
+                    // Skip hidden/optional subjects if not showing optional
+                    if (sub.isOptional && !showOptional) return;
+                    
+                    if (progressData[currentClass.id] && progressData[currentClass.id][sub.id]) {
+                        for (let chapterId in progressData[currentClass.id][sub.id]) {
+                            if (progressData[currentClass.id][sub.id][chapterId]) {
+                                totalCompleted++;
+                                // Find chapter name
+                                const chapter = findNode(sub.chapters, chapterId);
+                                if (chapter) {
+                                    completedChaptersList.push({
+                                        subject: sub.name,
+                                        chapter: chapter.title
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Build completed chapters list HTML
+            let completedHTML = '';
+            if (completedChaptersList.length > 0) {
+                completedHTML = `
+                    <div class="mt-3 max-h-40 overflow-y-auto space-y-1">
+                        ${completedChaptersList.map(item => `
+                            <div class="text-xs bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
+                                <span class="font-semibold text-purple-700 dark:text-purple-300">${item.subject}</span>
+                                <span class="text-purple-600 dark:text-purple-400"> → ${item.chapter}</span>
+                            </div>
+                        `).join('')}
+                    </div>`;
+            }
+            
+            // Context-aware: If viewing a subject, show subject-specific stats
+            const isSubjectView = currentSubject !== null;
+            const contextTitle = isSubjectView 
+                ? `${currentSubject.name} - পরিসংখ্যান`
+                : 'পড়াশোনার পরিসংখ্যান';
+            
+            // Get subject-wise stats - EXCLUDE HIDDEN subjects
+            let subjectStats = '';
+            if (currentClass && !isSubjectView) {
+                const subjects = subjectsData[currentClass.id] || [];
+                subjects.forEach(sub => {
+                    // Skip hidden subjects
+                    if (sub.isOptional && !showOptional) return;
+                    
                     const time = getStudyTime(currentClass.id, sub.id);
                     const progress = calculateProgress(currentClass.id, sub.id, sub.chapters);
+                    
+                    // Get completed chapters for this subject
+                    let subChapters = [];
+                    if (progressData[currentClass.id] && progressData[currentClass.id][sub.id]) {
+                        for (let chapterId in progressData[currentClass.id][sub.id]) {
+                            if (progressData[currentClass.id][sub.id][chapterId]) {
+                                const chapter = findNode(sub.chapters, chapterId);
+                                if (chapter) subChapters.push(chapter.title);
+                            }
+                        }
+                    }
+                    
+                    const chaptersHTML = subChapters.length > 0 
+                        ? `<div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${subChapters.join(', ')}</div>`
+                        : '';
+                    
                     subjectStats += `
-                        <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
-                            <span class="text-sm font-medium">${sub.name}</span>
-                            <div class="text-right">
-                                <div class="text-sm font-bold text-indigo-600 dark:text-indigo-400">${time}</div>
-                                <div class="text-xs text-gray-500">${progress}% সম্পন্ন</div>
+                        <div class="py-2 border-b border-gray-100 dark:border-gray-800">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium">${sub.name}</span>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-indigo-600 dark:text-indigo-400">${time}</div>
+                                    <div class="text-xs text-gray-500">${progress}% সম্পন্ন</div>
+                                </div>
                             </div>
+                            ${chaptersHTML}
                         </div>`;
                 });
             }
             
+            // Chapter-wise stats if viewing a subject
+            let chapterStats = '';
+            if (isSubjectView) {
+                const chapters = currentSubject.chapters || [];
+                
+                function buildChapterStats(nodes, depth = 0) {
+                    let html = '';
+                    nodes.forEach(node => {
+                        const isCompleted = isChapterCompleted(currentClass.id, currentSubject.id, node.id);
+                        const time = getChapterStudyTime(currentClass.id, currentSubject.id, node.id);
+                        const indent = depth * 1.5;
+                        
+                        html += `
+                            <div class="py-2 border-b border-gray-100 dark:border-gray-800" style="padding-left: ${indent}rem">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-2">
+                                        ${isCompleted ? '<i data-lucide="check-circle" class="h-4 w-4 text-green-500"></i>' : '<i data-lucide="circle" class="h-4 w-4 text-gray-300"></i>'}
+                                        <span class="text-sm ${isCompleted ? 'font-semibold' : ''}">${node.title}</span>
+                                    </div>
+                                    <span class="text-xs text-gray-500">${time}</span>
+                                </div>
+                            </div>`;
+                        
+                        if (node.children && node.children.length > 0) {
+                            html += buildChapterStats(node.children, depth + 1);
+                        }
+                    });
+                    return html;
+                }
+                
+                chapterStats = buildChapterStats(chapters);
+            }
+            
+            // Duolingo-style streak calendar
+            
             document.getElementById('stats-modal-content').innerHTML = `
                 <div class="space-y-6">
+                    <!-- Title -->
+                    <h4 class="text-lg font-bold text-gray-800 dark:text-gray-200">${contextTitle}</h4>
+                    
                     <!-- Overview Cards -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-4 rounded-xl">
@@ -2193,13 +2390,22 @@
                             <div class="text-2xl font-bold text-orange-700 dark:text-orange-300">${streak.current} দিন</div>
                             <div class="text-xs text-orange-500 mt-1">সর্বোচ্চ: ${streak.best} দিন</div>
                         </div>
-                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-xl">
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-xl cursor-pointer" onclick="toggleCompletedList()">
                             <div class="text-xs text-purple-600 dark:text-purple-400 font-semibold mb-1">সম্পন্ন অধ্যায়</div>
                             <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">${totalCompleted}</div>
+                            <div class="text-xs text-purple-500 mt-1">বিস্তারিত দেখুন ▼</div>
                         </div>
                     </div>
                     
+                    <!-- Completed Chapters List (collapsible) -->
+                    <div id="completed-list" class="hidden">
+                        <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">সম্পন্ন অধ্যায়সমূহ</h4>
+                        ${completedHTML || '<p class="text-sm text-gray-500">এখনও কোনো অধ্যায় সম্পন্ন হয়নি</p>'}
+                    </div>
+                    
+                    
                     <!-- Charts Section -->
+                    ${!isSubjectView ? `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Weekly Activity Chart -->
                         <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -2219,6 +2425,22 @@
                         </div>
                         ` : ''}
                     </div>
+                    ` : ''}
+                    
+                    <!-- Monthly/Yearly View -->
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300">মাসিক পরিসংখ্যান</h4>
+                            <div class="flex gap-2">
+                                <button onclick="changeMonthView(-1)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-600">◀ আগে</button>
+                                <span id="monthViewLabel" class="text-xs text-gray-600 dark:text-gray-400 px-2 py-1">শেষ ১২ মাস</span>
+                                <button onclick="changeMonthView(1)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-600">পরে ▶</button>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 200px;">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
                     
                     <!-- Study Trend Chart -->
                     <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -2228,7 +2450,17 @@
                         </div>
                     </div>
                     
-                    ${subjectStats ? `
+                    ${chapterStats ? `
+                    <!-- Chapter-wise Stats (Subject View) -->
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">অধ্যায়ভিত্তিক পরিসংখ্যান</h4>
+                        <div class="max-h-96 overflow-y-auto">
+                            ${chapterStats}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${subjectStats && !isSubjectView ? `
                     <!-- Subject-wise Stats -->
                     <div>
                         <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">বিষয়ভিত্তিক পরিসংখ্যান</h4>
@@ -2245,12 +2477,37 @@
             // Render charts after modal opens and DOM is ready
             requestAnimationFrame(() => {
                 setTimeout(() => {
-                    renderWeeklyChart();
-                    if (currentClass) renderSubjectChart();
+                    console.log('Rendering charts...', 'isSubjectView:', isSubjectView);
+                    if (!isSubjectView) {
+                        renderWeeklyChart();
+                        if (currentClass) renderSubjectChart();
+                    }
+                    renderMonthlyChart(monthViewOffset);
                     renderTrendChart();
-                }, 200);
+                    lucide.createIcons();
+                    console.log('Charts rendered');
+                }, 300);
             });
         }
+        
+        function toggleCompletedList() {
+            const list = document.getElementById('completed-list');
+            if (list) {
+                list.classList.toggle('hidden');
+            }
+        }
+        
+        function getChapterStudyTime(classId, subjectId, chapterId) {
+            let totalSeconds = 0;
+            statsData.sessionsLog.forEach(session => {
+                if (session.classId === classId && session.subjectId === subjectId && session.chapterId === chapterId) {
+                    totalSeconds += session.duration;
+                }
+            });
+            return formatTime(totalSeconds);
+        }
+        
+
 
         // --- PROGRESS TRACKING FUNCTIONS ---
         function toggleChapterCompletion(chapterId) {
