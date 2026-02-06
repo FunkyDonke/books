@@ -688,7 +688,7 @@
 
     <!-- Statistics Modal -->
     <div id="modal-stats" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-2xl rounded-xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-6xl rounded-xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <i data-lucide="bar-chart-3" class="h-6 w-6 text-purple-600"></i>
@@ -998,6 +998,9 @@
                  if (studySessionStart) {
                      endStudySession();
                  }
+                 // Reset currentSubject to null when going back
+                 currentSubject = null;
+                 currentChapterNode = null;
                  hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');
                  isEditMode=false; selectedIds.clear(); updateEditModeUI(); renderSubjects();
              }
@@ -1596,7 +1599,10 @@
         }
         function openModal(id) { document.getElementById(id).classList.remove('opacity-0', 'pointer-events-none'); document.body.classList.add('modal-active'); }
         function closeModal(id) { 
-            if (id === 'modal-stats') destroyCharts(); 
+            if (id === 'modal-stats') {
+                destroyCharts(); 
+                if (statsInterval) clearInterval(statsInterval);
+            }
             document.getElementById(id).classList.add('opacity-0', 'pointer-events-none'); 
             document.body.classList.remove('modal-active'); 
         }
@@ -1637,7 +1643,7 @@
                      if(match) { depth = match[1].length; title = match[2].trim(); }
                  }
                  if(depth>-1 && title) {
-                     const newNode = { id:`ch_${Date.now()}_${Math.random()}`, title: title, children:[], content: {text:'',pdfUrl:'',pdfs: [],videos:[],qna:[]} };
+                     const newNode = { id:`ch_${Date.now()}_${Math.random()}`, title: title, children:[], content: {text:'',pdfUrl:'',pdfs: [], videos:[],qna:[]} };
                      if(stack.length===0) {
                          currentSubject.chapters.push(newNode); stack.push({node:newNode, depth:depth});
                      } else {
@@ -1804,6 +1810,13 @@
                         dayMinutes += Math.round(session.duration / 60);
                     }
                 });
+                
+                // Include current session if it's today - Use float for real-time visual
+                if (i === 0 && studySessionStart && currentStudySubject) {
+                    const currentDuration = (Date.now() - studySessionStart) / 60000; // minutes (float)
+                    dayMinutes += currentDuration;
+                }
+                
                 data.push(dayMinutes);
             }
             
@@ -1825,7 +1838,6 @@
                     responsive: true,
                     animation: false,
                     maintainAspectRatio: false,
-                    animation: false,
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -1833,13 +1845,14 @@
                             padding: 10,
                             borderRadius: 6,
                             callbacks: {
-                                label: (context) => `${context.parsed.y} মিনিট`
+                                label: (context) => `${Math.round(context.parsed.y)} মিনিট`
                             }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            suggestedMax: 5,
                             ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280' }
                         },
                         x: {
@@ -1870,7 +1883,13 @@
             
             subjects.forEach((sub, idx) => {
                 const key = `${currentClass.id}_${sub.id}`;
-                const minutes = Math.round((statsData.studyTime[key] || 0) / 60);
+                let minutes = Math.round((statsData.studyTime[key] || 0) / 60);
+
+                // Add current session if applicable
+                if (studySessionStart && currentStudySubject === sub.id) {
+                     minutes += Math.round((Date.now() - studySessionStart) / 60000);
+                }
+
                 if (minutes > 0) {
                     labels.push(sub.name.length > 15 ? sub.name.substring(0, 15) + '...' : sub.name);
                     data.push(minutes);
@@ -1927,107 +1946,124 @@
             });
         }
         
-        function renderTrendChart() {
+        // --- MONTHLY CHART LOGIC (MOVED OUTSIDE) ---
+        let dayViewOffset = 0; // Track which 30-day period we're viewing
 
-
-        let monthViewOffset = 0; // Track which 12-month period we're viewing
-        
         function renderMonthlyChart(offset = 0) {
             const ctx = document.getElementById('monthlyChart');
             if (!ctx) return;
             
-            // Get 12 months data with offset
-            const months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+            // Get 30 days data with offset
             const today = new Date();
             const labels = [];
             const data = [];
             
-            // Calculate start month based on offset
-            const startMonthOffset = offset * 12;
+            // Calculate start day based on offset
+            const startDayOffset = offset * 30;
             
-            for (let i = 11; i >= 0; i--) {
-                const monthIndex = today.getMonth() - i - startMonthOffset;
-                const date = new Date(today.getFullYear(), monthIndex, 1);
-                const monthName = months[date.getMonth()];
-                const year = date.getFullYear();
-                labels.push(`${monthName} ${year}`);
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i - startDayOffset);
+                const dateStr = date.toDateString();
+                const dayMonth = `${date.getDate()}/${date.getMonth() + 1}`;
+                labels.push(dayMonth);
                 
-                let monthMinutes = 0;
+                let dayMinutes = 0;
                 statsData.sessionsLog.forEach(session => {
-                    const sessionDate = new Date(session.date);
-                    if (sessionDate.getMonth() === date.getMonth() && sessionDate.getFullYear() === date.getFullYear()) {
-                        monthMinutes += Math.round(session.duration / 60);
+                    if (new Date(session.date).toDateString() === dateStr) {
+                        dayMinutes += Math.round(session.duration / 60);
                     }
                 });
-                data.push(monthMinutes);
+                
+                // Include current session if it's today and offset is 0
+                // Use float to show incremental progress
+                if (offset === 0 && i === 0 && studySessionStart && currentStudySubject) {
+                    const currentDuration = (Date.now() - studySessionStart) / 60000; // minutes (float)
+                    dayMinutes += currentDuration;
+                }
+                
+                data.push(dayMinutes);
             }
             
             // Update label
             const labelEl = document.getElementById('monthViewLabel');
             if (labelEl) {
                 if (offset === 0) {
-                    labelEl.innerText = 'শেষ ১২ মাস';
+                    labelEl.innerText = 'শেষ ৩০ দিন';
                 } else {
-                    const endDate = new Date(today.getFullYear(), today.getMonth() - startMonthOffset, 1);
-                    const startDate = new Date(today.getFullYear(), today.getMonth() - 11 - startMonthOffset, 1);
-                    labelEl.innerText = `${months[startDate.getMonth()]} ${startDate.getFullYear()} - ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+                    const endDate = new Date(today);
+                    endDate.setDate(endDate.getDate() - startDayOffset);
+                    const startDate = new Date(today);
+                    startDate.setDate(startDate.getDate() - 29 - startDayOffset);
+                    const months = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+                    labelEl.innerText = `${startDate.getDate()} ${months[startDate.getMonth()]} - ${endDate.getDate()} ${months[endDate.getMonth()]}`;
                 }
             }
             
             if (charts.monthly) charts.monthly.destroy();
-            charts.monthly = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'মিনিট',
-                        data: data,
-                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                        borderColor: 'rgba(16, 185, 129, 1)',
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    animation: false,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 10,
-                            borderRadius: 6,
-                            callbacks: {
-                                label: (context) => `${context.parsed.y} মিনিট`
-                            }
-                        }
+            
+            try {
+                charts.monthly = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'মিনিট',
+                            data: data,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280' }
+                    options: {
+                        responsive: true,
+                        animation: false,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 10,
+                                borderRadius: 6,
+                                callbacks: {
+                                    title: (items) => labels[items[0].dataIndex],
+                                    label: (context) => `${Math.round(context.parsed.y)} মিনিট`
+                                }
+                            }
                         },
-                        x: {
-                            ticks: { 
-                                color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280',
-                                maxRotation: 45,
-                                minRotation: 45,
-                                font: { size: 9 }
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                suggestedMax: 5,
+                                ticks: { 
+                                    color: '#6b7280',
+                                    font: { size: 10 }
+                                }
+                            },
+                            x: {
+                                ticks: { 
+                                    color: '#6b7280',
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    font: { size: 8 }
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error rendering monthly chart:', error);
+            }
         }
         
         function changeMonthView(direction) {
-            monthViewOffset += direction;
-            // Don't go into future
-            if (monthViewOffset < 0) monthViewOffset = 0;
-            renderMonthlyChart(monthViewOffset);
+            dayViewOffset += direction;
+            if (dayViewOffset < 0) dayViewOffset = 0;
+            renderMonthlyChart(dayViewOffset);
         }
 
+        function renderTrendChart() {
             const ctx = document.getElementById('trendChart');
             if (!ctx) return;
             
@@ -2049,6 +2085,13 @@
                         dayMinutes += Math.round(session.duration / 60);
                     }
                 });
+                
+                // Include current session if it's today
+                if (i === 0 && studySessionStart && currentStudySubject) {
+                    const currentDuration = (Date.now() - studySessionStart) / 60000; // minutes (float)
+                    dayMinutes += currentDuration;
+                }
+                
                 data.push(dayMinutes);
             }
             
@@ -2082,13 +2125,14 @@
                             borderRadius: 6,
                             callbacks: {
                                 title: (items) => `তারিখ: ${items[0].label}`,
-                                label: (context) => `${context.parsed.y} মিনিট`
+                                label: (context) => `${Math.round(context.parsed.y)} মিনিট`
                             }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            suggestedMax: 5,
                             ticks: { 
                                 color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#6b7280',
                                 stepSize: 10
@@ -2110,6 +2154,7 @@
         let studySessionStart = null;
         let currentStudySubject = null;
         let currentStudyChapter = null;
+        let statsInterval = null; // Interval for real-time chart updates
         
         function startStudySession(subjectId, chapterId) {
             studySessionStart = Date.now();
@@ -2190,6 +2235,12 @@
             for (let key in statsData.studyTime) {
                 total += statsData.studyTime[key];
             }
+            
+            // Add current active session
+            if (studySessionStart && currentStudySubject) {
+                total += Math.floor((Date.now() - studySessionStart) / 1000);
+            }
+            
             return formatTime(total);
         }
         
@@ -2218,6 +2269,12 @@
                 }
             });
             
+            // Include current ongoing session
+            if (studySessionStart && currentStudySubject) {
+                const currentDuration = Math.floor((Date.now() - studySessionStart) / 1000);
+                todaySeconds += currentDuration;
+            }
+            
             return formatTime(todaySeconds);
         }
         
@@ -2241,6 +2298,22 @@
             };
         }
         
+        function renderChartsWrapper(isSubjectView = false) {
+             // Refresh text stats
+             const totalTimeEl = document.querySelector('#stats-modal-content .text-indigo-700');
+             const todayTimeEl = document.querySelector('#stats-modal-content .text-green-700');
+             if(totalTimeEl) totalTimeEl.innerText = getTotalStudyTime();
+             if(todayTimeEl) todayTimeEl.innerText = getTodayStudyTime();
+
+             // Refresh charts
+             if (!isSubjectView) {
+                renderWeeklyChart();
+                if (currentClass) renderSubjectChart();
+             }
+             renderMonthlyChart(dayViewOffset);
+             renderTrendChart();
+        }
+
         function openStatsModal() {
             const totalTime = getTotalStudyTime();
             const todayTime = getTodayStudyTime();
@@ -2430,10 +2503,10 @@
                     <!-- Monthly/Yearly View -->
                     <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
                         <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300">মাসিক পরিসংখ্যান</h4>
+                            <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300">৩০ দিনের পরিসংখ্যান</h4>
                             <div class="flex gap-2">
                                 <button onclick="changeMonthView(-1)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-600">◀ আগে</button>
-                                <span id="monthViewLabel" class="text-xs text-gray-600 dark:text-gray-400 px-2 py-1">শেষ ১২ মাস</span>
+                                <span id="monthViewLabel" class="text-xs text-gray-600 dark:text-gray-400 px-2 py-1">শেষ ৩০ দিন</span>
                                 <button onclick="changeMonthView(1)" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-600">পরে ▶</button>
                             </div>
                         </div>
@@ -2464,7 +2537,7 @@
                     <!-- Subject-wise Stats -->
                     <div>
                         <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">বিষয়ভিত্তিক পরিসংখ্যান</h4>
-                        <div class="space-y-1 max-h-64 overflow-y-auto">
+                        <div class="space-y-1 max-h-96 overflow-y-auto">
                             ${subjectStats}
                         </div>
                     </div>
@@ -2474,20 +2547,19 @@
             
             openModal('modal-stats');
             
-            // Render charts after modal opens and DOM is ready
+            // Initial Render
             requestAnimationFrame(() => {
                 setTimeout(() => {
-                    console.log('Rendering charts...', 'isSubjectView:', isSubjectView);
-                    if (!isSubjectView) {
-                        renderWeeklyChart();
-                        if (currentClass) renderSubjectChart();
-                    }
-                    renderMonthlyChart(monthViewOffset);
-                    renderTrendChart();
+                    renderChartsWrapper(isSubjectView);
                     lucide.createIcons();
-                    console.log('Charts rendered');
                 }, 300);
             });
+
+            // Start Real-time Update Interval
+            if(statsInterval) clearInterval(statsInterval);
+            statsInterval = setInterval(() => {
+                renderChartsWrapper(isSubjectView);
+            }, 5000); // Update charts every 5 seconds
         }
         
         function toggleCompletedList() {
@@ -2504,6 +2576,10 @@
                     totalSeconds += session.duration;
                 }
             });
+            // Add current session if same chapter
+            if(studySessionStart && currentStudyChapter === chapterId) {
+                totalSeconds += Math.floor((Date.now() - studySessionStart) / 1000);
+            }
             return formatTime(totalSeconds);
         }
         
