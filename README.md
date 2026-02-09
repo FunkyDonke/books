@@ -63,12 +63,31 @@ https://funkydonke.github.io/#/
 Class 8 subjects:
 https://funkydonke.github.io/#/Class8
 
-Class 8 Math subject:
-https://funkydonke.github.io/#/Class8/Math
+Subject 1 in Class 8 (first subject in the list):
+https://funkydonke.github.io/#/Class8/1
 
-Class 8 Math Chapter 1:
-https://funkydonke.github.io/#/Class8/Math/1
+Subject 1, Chapter 1:
+https://funkydonke.github.io/#/Class8/1/1
+
+Subject 2, Chapter 3:
+https://funkydonke.github.io/#/Class8/2/3
+
+Subject 1, Chapter 2, Subsection 1:
+https://funkydonke.github.io/#/Class8/1/2-1
+
+Nested chapters (Chapter 3 > Subsection 2 > Topic 1):
+https://funkydonke.github.io/#/Class8/1/3-2-1
 ```
+
+**How it works:**
+- **Class**: `Class8` = Class 8
+- **Subject**: Just a number (1, 2, 3...) = position in your subject list
+- **Chapter**: Position numbers separated by hyphens
+  - `1` = Chapter 1
+  - `2-1` = Chapter 2, Subsection 1
+  - `3-2-1` = Chapter 3, Subsection 2, Topic 1
+
+**Ultra short and clean!** No more random IDs or Bengali text in URLs.
 
 ## Technical Details
 
