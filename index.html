@@ -198,11 +198,11 @@
 
     <!-- Main Content -->
     <main id="main-container" class="flex-grow w-full overflow-hidden relative">
-        <div class="h-full w-full overflow-y-auto px-4 custom-scrollbar"> 
-            <div class="max-w-7xl mx-auto h-full flex flex-col">
+        <div class="h-full w-full overflow-y-auto custom-scrollbar"> 
+            <div class="w-full h-full flex flex-col">
             
                 <!-- VIEW 1: Class Selection -->
-                <div id="view-classes" class="fade-in py-10 flex-grow flex flex-col justify-center">
+                <div id="view-classes" class="fade-in py-10 px-4 flex-grow flex flex-col justify-center">
                     <div class="text-center mb-10">
                         <h1 class="text-4xl md:text-6xl font-bold mb-4 text-gray-900 dark:text-white">আপনার <span class="gradient-text">শ্রেণী</span> নির্বাচন করুন</h1>
                         <p class="text-lg text-gray-600 dark:text-gray-400">ডিজিটাল পাঠ্যবই এবং নোট ম্যানেজমেন্ট সিস্টেম (অটোমেটেড)</p>
@@ -212,7 +212,7 @@
                 </div>
 
                 <!-- VIEW 2: Subject Selection -->
-                <div id="view-subjects" class="hidden fade-in pb-20 relative">
+                <div id="view-subjects" class="hidden fade-in pb-20 relative px-4 lg:px-6">
                      <!-- Bulk Action Bar -->
                     <div id="bulk-action-bar-subjects" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 rounded-full px-6 py-3 flex items-center gap-4 animate-bounce-in">
                         <span class="text-sm font-bold text-gray-700 dark:text-white"><span id="selected-count-subs">0</span> টি নির্বাচিত</span>
@@ -268,7 +268,7 @@
                 </div>
 
                 <!-- VIEW 3: Reader View -->
-                                <div id="view-reader" class="hidden fade-in h-full flex flex-col relative pt-4">
+                                <div id="view-reader" class="hidden fade-in h-full flex flex-col relative pt-4 px-6 lg:px-8">
                      <!-- Bulk Action Bar -->
                     <div id="bulk-action-bar-chapters" class="hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-gray-800 shadow-xl border border-gray-200 dark:border-gray-700 rounded-full px-6 py-3 flex items-center gap-4 animate-bounce-in">
                         <span class="text-sm font-bold text-gray-700 dark:text-white"><span id="selected-count-chaps">0</span> টি নির্বাচিত</span>
@@ -746,6 +746,8 @@
         let dragSrcId = null;
         let expandTimer = null;
         let openAccordionIds = new Set();
+        let lastReadPosition = JSON.parse(localStorage.getItem('smartPathshala_lastRead') || '{}');
+
         let selectedIds = new Set();
         let saveDataTimeout = null;
 
@@ -996,7 +998,9 @@
         }
         function goHome() {
             hideAllViews(); document.getElementById('view-classes').classList.remove('hidden');
-            currentClass = null; isEditMode = false; selectedIds.clear(); updateEditModeUI();
+            currentClass = null; currentSubject = null; currentChapterNode = null;
+            isEditMode = false; selectedIds.clear(); updateEditModeUI();
+            updateURL(); // Update URL
         }
         function selectClass(clsId, clsName) {
             currentClass = { id: clsId, name: clsName };
@@ -1005,6 +1009,7 @@
             const gs = document.getElementById('group-selector-container');
             if(clsId===9||clsId===11) gs.classList.remove('hidden'); else gs.classList.add('hidden');
             isEditMode=false; selectedIds.clear(); updateEditModeUI(); renderSubjects();
+            updateURL(); // Update URL
         }
         function showSubjects() {
              if(currentClass) {
@@ -1017,6 +1022,7 @@
                  currentChapterNode = null;
                  hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');
                  isEditMode=false; selectedIds.clear(); updateEditModeUI(); renderSubjects();
+                 updateURL(); // Update URL
              }
         }
 
@@ -1128,6 +1134,12 @@
         function openReader(sub) {
             currentSubject = sub;
             if(currentSubject.chapters) currentSubject.chapters.forEach(ensureContentStructure);
+            
+            // Expand all chapters by default on first open
+            if (currentSubject.chapters) {
+                expandAllChapters(currentSubject.chapters);
+            }
+            
             hideAllViews();
             document.getElementById('view-reader').classList.remove('hidden');
             document.getElementById('reader-subject-title').innerText = `${currentClass.name} > ${sub.name}`;
@@ -1136,6 +1148,17 @@
             ['text', 'pdf', 'video', 'qna'].forEach(t => document.getElementById(`tab-content-${t}`).classList.add('hidden'));
             selectedIds.clear();
             renderChapters();
+            updateURL(); // Update URL
+        }
+        
+        // Recursively expand all chapters with children
+        function expandAllChapters(nodes) {
+            nodes.forEach(node => {
+                if (node.children && node.children.length > 0) {
+                    openAccordionIds.add(node.id);
+                    expandAllChapters(node.children);
+                }
+            });
         }
 
         function renderChapters() {
@@ -1143,9 +1166,44 @@
             if(!currentSubject.chapters || currentSubject.chapters.length===0) document.getElementById('empty-chapters-msg').classList.remove('hidden');
             else {
                 document.getElementById('empty-chapters-msg').classList.add('hidden');
+                
+                // Check if we should auto-open last read chapter
+                const lastChapterId = lastReadPosition[currentClass.id]?.[currentSubject.id];
+                const shouldAutoOpen = lastChapterId && !currentChapterNode;
+                
+                // Render all chapters (already expanded from openReader)
                 currentSubject.chapters.forEach(node => list.appendChild(createChapterNode(node, 0)));
+                
+                // Auto-open last read chapter
+                if (shouldAutoOpen) {
+                    setTimeout(() => {
+                        clickChapter(lastChapterId, null, true);
+                        
+                        // Scroll to chapter in sidebar (no jump, smooth)
+                        setTimeout(() => {
+                            const chapterElement = document.querySelector(`[onclick*="clickChapter('${lastChapterId}'"]`);
+                            if (chapterElement) {
+                                chapterElement.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+                            }
+                        }, 50);
+                    }, 100);
+                }
             }
             updateBulkActionBar('chapters'); lucide.createIcons();
+        }
+        
+        // Find path from root to target node (returns array of parent IDs)
+        function findPathToNode(nodes, targetId, path = []) {
+            for (let node of nodes) {
+                if (node.id === targetId) {
+                    return path;
+                }
+                if (node.children && node.children.length > 0) {
+                    const result = findPathToNode(node.children, targetId, [...path, node.id]);
+                    if (result) return result;
+                }
+            }
+            return null;
         }
 
         function createChapterNode(node, depth) {
@@ -1162,12 +1220,12 @@
                 : `<input type="checkbox" ${isCompleted?'checked':''} data-chapter-checkbox="${node.id}" class="mr-2 accent-indigo-600 h-4 w-4" onclick="toggleChapterCompletion('${node.id}'); event.stopPropagation();" title="সম্পন্ন চিহ্নিত করুন">`;
             
             div.innerHTML = `
-            <div class="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer mb-1 select-none ${isActive ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : ''}" 
+            <div class="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer mb-1 select-none transition-all ${isActive ? 'bg-gray-200 dark:bg-gray-700/80 shadow-md' : ''}" 
                  style="padding-left: ${padding}rem" onclick="clickChapter('${node.id}', event)">
                 <div class="flex items-center gap-2 overflow-hidden w-full">
                     ${checkbox}
-                    <i id="icon-${node.id}" data-lucide="${hasChildren ? 'chevron-right' : 'circle'}" class="h-4 w-4 text-gray-400 transition-transform ${hasChildren && isOpen ? 'rotate-90' : ''} ${!hasChildren ? 'h-1.5 w-1.5 mt-0.5 ml-1' : ''}"></i>
-                    <span class="truncate text-sm font-medium ${isActive ? 'font-bold' : ''}">${node.title}</span>
+                    <i id="icon-${node.id}" data-lucide="${hasChildren ? 'chevron-right' : 'circle'}" class="h-4 w-4 ${isActive ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400'} transition-transform ${hasChildren && isOpen ? 'rotate-90' : ''} ${!hasChildren ? 'h-1.5 w-1.5 mt-0.5 ml-1' : ''}"></i>
+                    <span class="truncate text-sm font-medium ${isActive ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}">${node.title}</span>
                 </div>
             </div>
             <div id="acc-${node.id}" class="accordion-content ${isOpen ? 'open' : ''}"></div>`;
@@ -1197,9 +1255,10 @@
              return null;
         }
 
-        function clickChapter(id, e) {
+        function clickChapter(id, e, isAutoOpen = false) {
             if(isEditMode && e && e.target && e.target.tagName === 'INPUT') return;
             const node = findNode(currentSubject.chapters, id);
+            if (!node) return; // Safety check
             
             // End previous study session
             if (studySessionStart) {
@@ -1208,17 +1267,34 @@
             
             if(node.children && node.children.length > 0) {
                 const el = document.getElementById(`acc-${id}`);
-                if(el.classList.contains('open')) { el.classList.remove('open'); openAccordionIds.delete(id); }
-                else { el.classList.add('open'); openAccordionIds.add(id); }
-                renderChapters(); 
+                if(el && el.classList.contains('open')) { el.classList.remove('open'); openAccordionIds.delete(id); }
+                else if(el) { el.classList.add('open'); openAccordionIds.add(id); }
+                if (!isAutoOpen) renderChapters(); 
             }
             currentChapterNode = node;
             ensureContentStructure(currentChapterNode);
             document.getElementById('chapter-title').innerText = node.title;
             document.getElementById('content-empty').classList.add('hidden');
             document.getElementById('content-tabs').classList.remove('hidden');
-            renderChapters(); 
+            
+            // Re-render to update highlighting
+            if (!isAutoOpen) renderChapters();
+            else {
+                // For auto-open, just update the active chapter styling
+                setTimeout(() => renderChapters(), 50);
+            }
+            
             switchTab(activeTab);
+            
+            // Save last chapter position (skip during auto-open to avoid overwriting)
+            if (!isAutoOpen) {
+                if (!lastReadPosition[currentClass.id]) lastReadPosition[currentClass.id] = {};
+                lastReadPosition[currentClass.id][currentSubject.id] = id;
+                localStorage.setItem('smartPathshala_lastRead', JSON.stringify(lastReadPosition));
+            }
+            
+            // Update URL
+            updateURL();
             
             // Start new study session
             startStudySession(currentSubject.id, id);
@@ -1848,6 +1924,98 @@
         });
 
         window.onload = init;
+
+        // URL Routing System
+        function updateURL() {
+            let path = '/books/';
+            
+            if (currentClass) {
+                path += currentClass.id + '/';
+                
+                if (currentSubject) {
+                    path += currentSubject.id + '/';
+                    
+                    if (currentChapterNode) {
+                        path += currentChapterNode.id;
+                    }
+                }
+            }
+            
+            // Update URL without reload
+            window.history.pushState({
+                classId: currentClass?.id,
+                subjectId: currentSubject?.id,
+                chapterId: currentChapterNode?.id
+            }, '', path);
+        }
+        
+        // Restore state from URL
+        function restoreFromURL() {
+            const path = window.location.pathname;
+            const parts = path.split('/').filter(p => p && p !== 'books');
+            
+            if (parts.length === 0) {
+                // Show class selection
+                showClasses();
+                return;
+            }
+            
+            const classId = parts[0];
+            const subjectId = parts[1];
+            const chapterId = parts[2];
+            
+            // Find and set class
+            const foundClass = classesData.junior.concat(classesData.secondary).find(c => c.id === classId);
+            if (!foundClass) {
+                showClasses();
+                return;
+            }
+            
+            currentClass = foundClass;
+            
+            if (!subjectId) {
+                // Show subjects
+                showSubjects();
+                return;
+            }
+            
+            // Find and set subject
+            const foundSubject = subjectsData[classId]?.find(s => s.id === subjectId);
+            if (!foundSubject) {
+                showSubjects();
+                return;
+            }
+            
+            currentSubject = foundSubject;
+            openReader(foundSubject);
+            
+            if (chapterId) {
+                // Find and open chapter
+                setTimeout(() => {
+                    const chapter = findNode(currentSubject.chapters, chapterId);
+                    if (chapter) {
+                        clickChapter(chapterId, null, false);
+                    }
+                }, 200);
+            }
+        }
+        
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (event) => {
+            if (event.state) {
+                restoreFromURL();
+            } else {
+                showClasses();
+            }
+        });
+        
+        // Initialize from URL on page load
+        window.addEventListener('load', () => {
+            if (window.location.pathname !== '/' && window.location.pathname !== '/books/' && window.location.pathname !== '/books') {
+                restoreFromURL();
+            }
+        });
+
 
         // --- CHART RENDERING FUNCTIONS ---
         let charts = {}; // Store chart instances
