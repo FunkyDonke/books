@@ -1969,8 +1969,7 @@
             const parts = hash.split('/').filter(p => p);
             
             if (parts.length === 0) {
-                // Show class selection (only if not already showing)
-                if (!document.getElementById('view-classes').classList.contains('hidden')) return;
+                // Show class selection
                 hideAllViews();
                 document.getElementById('view-classes').classList.remove('hidden');
                 currentClass = null;
@@ -1999,8 +1998,7 @@
             }
             
             if (!subjectId) {
-                // Show subjects (only if not already showing)
-                if (!document.getElementById('view-subjects').classList.contains('hidden')) return;
+                // Show subjects
                 hideAllViews();
                 document.getElementById('view-subjects').classList.remove('hidden');
                 document.getElementById('selected-class-name').innerText = foundClass.name;
@@ -2056,10 +2054,8 @@
         });
         
         // Initialize from hash on page load
-        if (window.location.hash) {
-            // Delay slightly to ensure DOM is ready
-            setTimeout(() => restoreFromHash(), 50);
-        }
+        // Always call restoreFromHash - it will show homepage if no hash
+        setTimeout(() => restoreFromHash(), 50);
 
 
         });
