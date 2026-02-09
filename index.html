@@ -1961,22 +1961,18 @@
                 }
             }
             
-            // Update URL without reload
-            try {
-                window.history.pushState({
-                    classId: currentClass?.id,
-                    subjectId: currentSubject?.id,
-                    chapterId: currentChapterNode?.id
-                }, '', path);
-            } catch (e) {
-                // Fallback for file:// protocol or if pushState fails
-                console.log("Routing update skipped (likely file protocol)");
+            // Use Hash Routing to prevent 404 errors on static hosts (like GitHub Pages)
+            if(window.location.hash !== '#' + path) {
+                window.location.hash = path;
             }
         }
         
         // FIXED: Restore state from URL with correct data access
         function restoreFromURL() {
-            const path = window.location.pathname;
+            // Use Hash instead of Pathname
+            const hash = window.location.hash;
+            const path = hash.startsWith('#') ? hash.slice(1) : hash;
+            
             const parts = path.split('/').filter(p => p && p !== 'books');
             
             if (parts.length === 0) {
@@ -2035,26 +2031,13 @@
             }
         }
         
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', (event) => {
-            if (event.state) {
-                // Use state object if available for smoother navigation
-                if (!event.state.classId) {
-                    goHome();
-                } else {
-                    // We can reconstruct current state from event.state
-                    // But restoreFromURL handles logic well, so we call it.
-                    restoreFromURL();
-                }
-            } else {
-                restoreFromURL();
-            }
-        });
+        // Handle browser back/forward buttons using hashchange
+        window.addEventListener('hashchange', restoreFromURL);
         
         // Initialize from URL on page load
         window.addEventListener('load', () => {
-            // Only try to restore if we are not at root
-            if (window.location.pathname !== '/' && window.location.pathname !== '/books/' && window.location.pathname !== '/books') {
+            // Only try to restore if hash exists and isn't just root
+            if (window.location.hash && window.location.hash !== '#/') {
                 // Small delay to ensure data is loaded
                 setTimeout(restoreFromURL, 500);
             }
