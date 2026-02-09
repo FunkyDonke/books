@@ -1925,74 +1925,8 @@
 
         window.onload = init;
 
-        // URL Routing System with clean, professional URLs
+        // URL Routing System with clean, SHORT URLs using position numbers
         let isNavigating = false; // Prevent recursive calls
-        
-        // Generate clean URL slug from subject/chapter title
-        function generateSlug(title, index = null) {
-            // Remove special characters and replace with hyphens
-            let slug = title
-                .toLowerCase()
-                .replace(/[^\u0980-\u09FF\w\s-]/g, '') // Keep Bengali, alphanumeric, spaces, hyphens
-                .replace(/\s+/g, '-') // Replace spaces with hyphens
-                .replace(/-+/g, '-') // Replace multiple hyphens with single
-                .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
-            
-            // If slug is empty (only special chars), use index
-            if (!slug && index !== null) {
-                slug = index.toString();
-            }
-            
-            return slug || 'untitled';
-        }
-        
-        // Get subject by slug or ID
-        function getSubjectBySlugOrId(classId, slugOrId) {
-            const subjects = subjectsData[classId] || [];
-            
-            // Try exact ID match first
-            let subject = subjects.find(s => s.id === slugOrId);
-            if (subject) return subject;
-            
-            // Try slug match with index
-            for (let i = 0; i < subjects.length; i++) {
-                const s = subjects[i];
-                const slug = generateSlug(s.name, i + 1);
-                if (slug === slugOrId || `${i + 1}` === slugOrId) {
-                    return s;
-                }
-            }
-            
-            return null;
-        }
-        
-        // Get chapter by slug or ID (recursive search)
-        function getChapterBySlugOrId(nodes, slugOrId, parentPath = []) {
-            for (let i = 0; i < nodes.length; i++) {
-                const node = nodes[i];
-                const currentPath = [...parentPath, i + 1];
-                
-                // Try exact ID match
-                if (node.id === slugOrId) {
-                    return { node, path: currentPath };
-                }
-                
-                // Try slug match
-                const slug = generateSlug(node.title, currentPath.join('-'));
-                const indexStr = currentPath.join('-');
-                
-                if (slug === slugOrId || indexStr === slugOrId) {
-                    return { node, path: currentPath };
-                }
-                
-                // Recursively search children
-                if (node.children && node.children.length > 0) {
-                    const result = getChapterBySlugOrId(node.children, slugOrId, currentPath);
-                    if (result) return result;
-                }
-            }
-            return null;
-        }
         
         function updateURL(skipHistory = false) {
             if (isNavigating) return;
@@ -2003,18 +1937,18 @@
                 hash += 'Class' + currentClass.id;
                 
                 if (currentSubject) {
-                    // Find subject index for clean URL
+                    // Find subject index (position in array)
                     const subjects = subjectsData[currentClass.id] || [];
                     const subjectIndex = subjects.findIndex(s => s.id === currentSubject.id);
-                    const subjectSlug = generateSlug(currentSubject.name, subjectIndex + 1);
-                    hash += '/' + subjectSlug;
+                    if (subjectIndex >= 0) {
+                        hash += '/' + (subjectIndex + 1); // 1-based index
+                    }
                     
                     if (currentChapterNode) {
-                        // Find chapter path for clean URL
-                        const result = getChapterBySlugOrId(currentSubject.chapters, currentChapterNode.id);
-                        if (result) {
-                            const chapterSlug = result.path.join('-');
-                            hash += '/' + chapterSlug;
+                        // Find chapter path using position numbers
+                        const chapterPath = getChapterPath(currentSubject.chapters, currentChapterNode.id);
+                        if (chapterPath) {
+                            hash += '/' + chapterPath.join('-');
                         }
                     }
                 }
@@ -2025,10 +1959,44 @@
                 if (!skipHistory) {
                     window.location.hash = hash;
                 } else {
-                    // Replace without adding to history
                     history.replaceState(null, '', hash);
                 }
             }
+        }
+        
+        // Get chapter position path (1-based indexes)
+        function getChapterPath(nodes, targetId, currentPath = []) {
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                const newPath = [...currentPath, i + 1];
+                
+                if (node.id === targetId) {
+                    return newPath;
+                }
+                
+                if (node.children && node.children.length > 0) {
+                    const result = getChapterPath(node.children, targetId, newPath);
+                    if (result) return result;
+                }
+            }
+            return null;
+        }
+        
+        // Get chapter by position path
+        function getChapterByPath(nodes, pathStr) {
+            const path = pathStr.split('-').map(n => parseInt(n) - 1); // Convert to 0-based
+            let current = nodes;
+            let node = null;
+            
+            for (let index of path) {
+                if (!current || index < 0 || index >= current.length) {
+                    return null;
+                }
+                node = current[index];
+                current = node.children;
+            }
+            
+            return node;
         }
         
         // Restore state from URL hash
@@ -2062,8 +2030,8 @@
                 }
                 
                 const classId = parseInt(classMatch[1]);
-                const subjectSlugOrId = parts[1];
-                const chapterSlugOrId = parts[2];
+                const subjectPos = parts[1];
+                const chapterPath = parts[2];
                 
                 // Find class data
                 const classes = [
@@ -2084,10 +2052,10 @@
                     return;
                 }
                 
-                // Set class and show subjects view
+                // Set class
                 currentClass = { id: classId, name: foundClass.name };
                 
-                if (!subjectSlugOrId) {
+                if (!subjectPos) {
                     // Just show subjects for this class
                     currentSubject = null;
                     currentChapterNode = null;
@@ -2101,10 +2069,12 @@
                     return;
                 }
                 
-                // Find and set subject using slug or ID
-                const foundSubject = getSubjectBySlugOrId(classId, subjectSlugOrId);
-                if (!foundSubject) {
-                    // Subject not found, show subjects list
+                // Get subject by position (1-based)
+                const subjects = subjectsData[classId] || [];
+                const subjectIndex = parseInt(subjectPos) - 1;
+                
+                if (subjectIndex < 0 || subjectIndex >= subjects.length) {
+                    // Invalid subject index, show subjects list
                     currentSubject = null;
                     currentChapterNode = null;
                     hideAllViews();
@@ -2114,20 +2084,21 @@
                     return;
                 }
                 
+                const foundSubject = subjects[subjectIndex];
                 currentSubject = foundSubject;
                 
-                // Open reader WITHOUT triggering URL update
+                // Open reader
                 hideAllViews();
                 document.getElementById('view-reader').classList.remove('hidden');
                 document.getElementById('reader-subject-title').innerText = `${currentClass.name} > ${currentSubject.name}`;
                 
-                if (chapterSlugOrId) {
-                    // Find the chapter using slug or ID
-                    const chapterResult = getChapterBySlugOrId(currentSubject.chapters, chapterSlugOrId);
+                if (chapterPath) {
+                    // Get chapter by path
+                    const chapter = getChapterByPath(currentSubject.chapters, chapterPath);
                     
-                    if (chapterResult) {
+                    if (chapter) {
                         // Expand path to this chapter
-                        const path = findPathToNode(currentSubject.chapters, chapterResult.node.id);
+                        const path = findPathToNode(currentSubject.chapters, chapter.id);
                         if (path) {
                             path.forEach(parentId => openAccordionIds.add(parentId));
                         }
@@ -2136,11 +2107,11 @@
                         renderChapters();
                         
                         // Open the chapter
-                        clickChapter(chapterResult.node.id, null, true);
+                        clickChapter(chapter.id, null, true);
                         
                         // Scroll to the chapter in sidebar
                         setTimeout(() => {
-                            const chapterElement = document.querySelector(`[onclick*="clickChapter('${chapterResult.node.id}'"]`);
+                            const chapterElement = document.querySelector(`[onclick*="clickChapter('${chapter.id}'"]`);
                             if (chapterElement) {
                                 chapterElement.scrollIntoView({ behavior: 'auto', block: 'center' });
                             }
