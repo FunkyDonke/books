@@ -151,12 +151,20 @@
 
         /* Loading Overlay for Auto Import */
         #auto-import-overlay { z-index: 9999; }
-        /* Center content when sidebar is hidden on desktop */
+        
+        /* FIX: Better Centering for Sidebar Hidden Mode */
         @media (min-width: 1024px) {
             .sidebar-hidden .content-area {
-                margin-left: auto;
-                margin-right: auto;
-                max-width: 1400px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+                max-width: 1100px; /* Constrain width for readability */
+                padding-left: 2rem;
+                padding-right: 2rem;
+                flex: none; /* Stop growing indefinitely */
+                width: 100%;
+            }
+            .sidebar-hidden #reader-wrapper {
+                justify-content: center; /* Center the flex child */
             }
         }
     </style>
@@ -174,7 +182,7 @@
     <nav class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-md z-50 shadow-sm border-b border-gray-100 dark:border-gray-800 flex-none sticky top-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center cursor-pointer gap-2" onclick="goHome()">
+                <div class="flex items-center cursor-pointer gap-2" onclick="navigateToHome()">
                     <i data-lucide="book-open" class="h-8 w-8 text-indigo-600"></i>
                     <span class="text-2xl font-bold text-gray-900 dark:text-white">স্মার্ট<span class="text-indigo-600 dark:text-indigo-400">পাঠশালা</span> <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">AUTO</span></span>
                 </div>
@@ -234,7 +242,7 @@
                     <div class="sticky top-0 z-30 bg-gray-50/95 dark:bg-gray-950/95 pt-4 pb-4 mb-4 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors backdrop-blur-md">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div class="flex items-center gap-3">
-                                <button onclick="goHome()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition">
+                                <button onclick="navigateToHome()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition">
                                     <i data-lucide="arrow-left" class="h-6 w-6"></i>
                                 </button>
                                 <div>
@@ -288,11 +296,11 @@
                     <!-- Mobile Sidebar Overlay -->
                     <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/60 z-40 lg:hidden" onclick="toggleSidebar()"></div>
 
-                    <div class="flex gap-0 lg:gap-6 h-full pb-2 overflow-hidden">
+                    <div id="reader-wrapper" class="flex gap-0 lg:gap-6 h-full pb-2 overflow-hidden">
                         <!-- Sidebar (Table of Contents) - Collapsible & Responsive -->
                         <div id="reader-sidebar" class="fixed lg:relative top-0 left-0 h-full w-80 lg:w-80 flex-shrink-0 flex-col z-50 lg:z-auto bg-white dark:bg-gray-900 shadow-2xl lg:shadow-sm border-r lg:border lg:rounded-2xl border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-300 -translate-x-full lg:translate-x-0 lg:flex">
                             <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
-                                <button onclick="showSubjects()" class="text-gray-500 hover:text-indigo-600 transition"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+                                <button onclick="navigateToClass(currentClass.id)" class="text-gray-500 hover:text-indigo-600 transition"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
                                 <span class="font-bold text-gray-700 dark:text-gray-200 truncate mx-2">সূচিপত্র</span>
                                 <div class="flex gap-1 flex-shrink-0">
                                     <!-- Close button for mobile -->
@@ -794,7 +802,6 @@
                         console.log(`Loaded ${filePath} for Class ${classId}`);
                     } catch (e) {
                         console.warn(`Failed to load default data for Class ${classId}:`, e);
-                        // Optional: Create basic empty structure if fetch fails
                     }
                 });
 
@@ -809,7 +816,7 @@
         }
 
         function initUI() {
-            renderClassCards();
+            // Initialize basic UI components
             checkTheme();
             lucide.createIcons();
             
@@ -856,7 +863,181 @@
                 document.getElementById('pdf-sidebar').classList.toggle('hidden');
                 document.getElementById('pdf-sidebar').classList.toggle('flex');
             }
+
+            // --- IMPORTANT: Hash Routing Initialization ---
+            // If hash exists, handle it immediately to prevent animation glitch
+            if (window.location.hash && window.location.hash.length > 2) {
+                handleHashChange();
+            } else {
+                renderClassCards(); // Show homepage if no hash
+            }
+
+            // Listen for hash changes
+            window.addEventListener('hashchange', handleHashChange);
         }
+
+        // --- HASH ROUTING SYSTEM ---
+        
+        function getClassSlug(id) {
+            return `Class${id}`;
+        }
+
+        function getIdFromClassSlug(slug) {
+            if (!slug) return null;
+            return parseInt(slug.replace('Class', '')) || null;
+        }
+
+        // Navigate: Home -> Class
+        function navigateToHome() {
+            window.location.hash = '/';
+        }
+
+        // Navigate: Class -> Subject List
+        function navigateToClass(classId) {
+            window.location.hash = `/${getClassSlug(classId)}`;
+        }
+
+        // Navigate: Subject -> Chapter
+        function navigateToSubject(classId, subjectId) {
+            // We use subject ID in URL for uniqueness, but it could be slugified name if preferred
+            window.location.hash = `/${getClassSlug(classId)}/${subjectId}`;
+        }
+
+        function navigateToChapter(classId, subjectId, chapterId) {
+            window.location.hash = `/${getClassSlug(classId)}/${subjectId}/${chapterId}`;
+        }
+
+        // Core Router Logic
+        function handleHashChange() {
+            const hash = window.location.hash.substring(1); // Remove #
+            const parts = hash.split('/').filter(p => p);
+
+            // Case 0: Home (Empty hash or just #/)
+            if (parts.length === 0) {
+                showView('view-classes');
+                currentClass = null;
+                currentSubject = null;
+                currentChapterNode = null;
+                renderClassCards();
+                return;
+            }
+
+            // Parse Class
+            const classId = getIdFromClassSlug(parts[0]);
+            if (!classId) return; // Invalid class
+
+            // Set Current Class
+            if (!currentClass || currentClass.id !== classId) {
+                const classNameMap = {6: 'ষষ্ঠ শ্রেণী', 7: 'সপ্তম শ্রেণী', 8: 'অষ্টম শ্রেণী', 9: 'এসএসসি', 11: 'এইচএসসি'};
+                currentClass = { id: classId, name: classNameMap[classId] || `Class ${classId}` };
+            }
+
+            // Case 1: Class View (e.g. #/Class8)
+            if (parts.length === 1) {
+                showView('view-subjects');
+                document.getElementById('selected-class-name').innerText = currentClass.name;
+                const gs = document.getElementById('group-selector-container');
+                if(classId===9||classId===11) gs.classList.remove('hidden'); else gs.classList.add('hidden');
+                
+                // Reset deeper state
+                currentSubject = null;
+                currentChapterNode = null;
+                renderSubjects();
+                return;
+            }
+
+            // Parse Subject
+            const subjectId = parts[1];
+            // Find subject by ID (preferred) or loosely by name (fallback for user-friendly URLs)
+            let sub = subjectsData[classId]?.find(s => s.id === subjectId);
+            
+            // Fallback: If not found by ID, try to find by English slug or Name
+            if (!sub) {
+                // Try case-insensitive name match
+                const decodedSubId = decodeURIComponent(subjectId).toLowerCase();
+                sub = subjectsData[classId]?.find(s => s.name.toLowerCase() === decodedSubId || s.id.toLowerCase() === decodedSubId);
+            }
+
+            if (!sub) {
+                // Subject not found, go back to class view
+                navigateToClass(classId); 
+                return;
+            }
+
+            // Set Current Subject
+            currentSubject = sub;
+            if(currentSubject.chapters) currentSubject.chapters.forEach(ensureContentStructure);
+            expandAllChapters(currentSubject.chapters);
+
+            // Case 2: Reader View (e.g. #/Class8/Math)
+            if (parts.length === 2) {
+                showView('view-reader');
+                setupReaderView();
+                // Clear any active chapter
+                currentChapterNode = null;
+                document.getElementById('content-empty').classList.remove('hidden');
+                document.getElementById('content-tabs').classList.add('hidden');
+                renderChapters();
+                return;
+            }
+
+            // Case 3: Specific Chapter (e.g. #/Class8/Math/ChapterID)
+            const chapterId = parts[2];
+            const chapterNode = findNode(currentSubject.chapters, chapterId);
+            
+            if (chapterNode) {
+                showView('view-reader');
+                setupReaderView();
+                // Trigger chapter load logic
+                loadChapter(chapterNode);
+            } else {
+                // Chapter not found, just show reader
+                navigateToSubject(classId, sub.id);
+            }
+        }
+
+        function showView(viewId) {
+            // Hide all views
+            ['view-classes', 'view-subjects', 'view-reader'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            // Show target view
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function setupReaderView() {
+            document.getElementById('reader-subject-title').innerText = `${currentClass.name} > ${currentSubject.name}`;
+            renderChapters();
+        }
+
+        function loadChapter(node) {
+            currentChapterNode = node;
+            ensureContentStructure(currentChapterNode);
+            
+            // Update UI for Chapter
+            document.getElementById('chapter-title').innerText = node.title;
+            document.getElementById('content-empty').classList.add('hidden');
+            document.getElementById('content-tabs').classList.remove('hidden');
+            ['text', 'pdf', 'video', 'qna'].forEach(t => document.getElementById(`tab-content-${t}`).classList.add('hidden'));
+            
+            // Render active tab
+            switchTab(activeTab);
+            
+            // Expand accordion path to this node
+            // (findPathToNode is assumed to exist or we can skip strictly necessary visual expansion for performance)
+            
+            // Highlight in sidebar
+            renderChapters();
+            
+            // Auto-scroll sidebar to item
+            setTimeout(() => {
+                const el = document.querySelector(`[onclick*="navigateToChapter('${currentClass.id}', '${currentSubject.id}', '${node.id}')"]`);
+                if(el) el.scrollIntoView({block: 'center', behavior: 'smooth'});
+            }, 100);
+
+            // Start Session
+            startStudySession(currentSubject.id, node.id);
+        }
+
+        // --- END HASH ROUTING SYSTEM ---
 
         function normalizeChapters(list) {
             if(!list) return [];
@@ -886,10 +1067,10 @@
 
         function saveData() { localStorage.setItem('smartPathshalaData_v2', JSON.stringify(subjectsData)); localStorage.setItem('smartPathshala_progress', JSON.stringify(progressData)); localStorage.setItem('smartPathshala_stats', JSON.stringify(statsData)); }
         
-        // UPDATED: Reset now re-fetches default data
         function resetData() { 
             localStorage.removeItem('smartPathshalaData_v2'); 
             localStorage.removeItem('smartPathshalaData'); 
+            location.hash = '';
             location.reload(); 
         }
 
@@ -1000,38 +1181,12 @@
             subjectsData[classId].forEach(s => delete s._importStack);
         }
 
-        // --- NAVIGATION & UI ---
-        function hideAllViews() { 
-            ['view-classes', 'view-subjects', 'view-reader'].forEach(id => document.getElementById(id).classList.add('hidden')); 
-        }
-        function goHome() {
-            hideAllViews(); document.getElementById('view-classes').classList.remove('hidden');
-            currentClass = null; currentSubject = null; currentChapterNode = null;
-            isEditMode = false; selectedIds.clear(); updateEditModeUI();
-            updateURL(); // Update URL
-        }
+        // --- NAVIGATION & UI (Now Wrappers for Hash Router) ---
+        // Old direct UI manipulation functions are removed or refactored to use navigateTo*
+        
         function selectClass(clsId, clsName) {
-            currentClass = { id: clsId, name: clsName };
-            hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');
-            document.getElementById('selected-class-name').innerText = clsName;
-            const gs = document.getElementById('group-selector-container');
-            if(clsId===9||clsId===11) gs.classList.remove('hidden'); else gs.classList.add('hidden');
-            isEditMode=false; selectedIds.clear(); updateEditModeUI(); renderSubjects();
-            updateURL(); // Update URL
-        }
-        function showSubjects() {
-             if(currentClass) {
-                 // End study session when leaving chapter view
-                 if (studySessionStart) {
-                     endStudySession();
-                 }
-                 // Reset currentSubject to null when going back
-                 currentSubject = null;
-                 currentChapterNode = null;
-                 hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');
-                 isEditMode=false; selectedIds.clear(); updateEditModeUI(); renderSubjects();
-                 updateURL(); // Update URL
-             }
+            // Deprecated: use navigateToClass
+            navigateToClass(clsId);
         }
 
         // --- RENDER FUNCTIONS ---
@@ -1048,10 +1203,12 @@
             classes.forEach(c => {
                 const el = document.createElement('div');
                 el.className = `w-40 md:w-56 h-36 md:h-48 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center cursor-pointer card-hover p-4`;
-                el.onclick = () => selectClass(c.id, c.name);
+                // UPDATE: Use Hash Navigation
+                el.onclick = () => navigateToClass(c.id);
                 el.innerHTML = `<div class="h-12 w-12 md:h-16 md:w-16 rounded-full ${c.color} flex items-center justify-center mb-3"><i data-lucide="${c.icon}" class="h-6 w-6 md:h-8 md:w-8"></i></div><h3 class="font-bold text-gray-800 dark:text-white text-lg">${c.name}</h3>`;
                 if(c.id <= 8) rowJun.appendChild(el); else rowSen.appendChild(el);
             });
+            lucide.createIcons();
         }
 
         function updateGroup() { currentGroup = document.getElementById('group-select').value; renderSubjects(); }
@@ -1098,7 +1255,8 @@
                     el.addEventListener('dragover', (e) => { e.preventDefault(); });
                     el.addEventListener('drop', (e) => handleSubjectDrop(e, sub.id));
                 } else {
-                    el.addEventListener('click', () => openReader(sub));
+                    // UPDATE: Hash Navigation
+                    el.addEventListener('click', () => navigateToSubject(currentClass.id, sub.id));
                 }
 
                 let controls = isEditMode ? `<div class="absolute top-2 right-2 btn-visible-anim"><button onclick="event.stopPropagation(); editSubject('${sub.id}')" class="p-1 bg-blue-50 text-blue-600 rounded-full"><i data-lucide="pencil" class="h-3 w-3"></i></button></div>` : '';
@@ -1126,7 +1284,7 @@
             container.appendChild(grid);
         }
 
-        // --- DRAG & DROP & READER LOGIC ---
+        // --- DRAG & DROP ---
         function handleSubjectDrop(e, targetId) {
             e.stopPropagation(); if(dragSrcId === targetId) return;
             const list = subjectsData[currentClass.id];
@@ -1137,26 +1295,6 @@
                 list.splice(tgtIdx, 0, moved);
                 saveData(); renderSubjects();
             }
-        }
-
-        function openReader(sub) {
-            currentSubject = sub;
-            if(currentSubject.chapters) currentSubject.chapters.forEach(ensureContentStructure);
-            
-            // Expand all chapters by default on first open
-            if (currentSubject.chapters) {
-                expandAllChapters(currentSubject.chapters);
-            }
-            
-            hideAllViews();
-            document.getElementById('view-reader').classList.remove('hidden');
-            document.getElementById('reader-subject-title').innerText = `${currentClass.name} > ${sub.name}`;
-            document.getElementById('content-empty').classList.remove('hidden');
-            document.getElementById('content-tabs').classList.add('hidden');
-            ['text', 'pdf', 'video', 'qna'].forEach(t => document.getElementById(`tab-content-${t}`).classList.add('hidden'));
-            selectedIds.clear();
-            renderChapters();
-            updateURL(); // Update URL
         }
         
         // Recursively expand all chapters with children
@@ -1174,44 +1312,14 @@
             if(!currentSubject.chapters || currentSubject.chapters.length===0) document.getElementById('empty-chapters-msg').classList.remove('hidden');
             else {
                 document.getElementById('empty-chapters-msg').classList.add('hidden');
-                
-                // Check if we should auto-open last read chapter
-                const lastChapterId = lastReadPosition[currentClass.id]?.[currentSubject.id];
-                const shouldAutoOpen = lastChapterId && !currentChapterNode;
-                
                 // Render all chapters (already expanded from openReader)
                 currentSubject.chapters.forEach(node => list.appendChild(createChapterNode(node, 0)));
-                
-                // Auto-open last read chapter
-                if (shouldAutoOpen) {
-                    setTimeout(() => {
-                        clickChapter(lastChapterId, null, true);
-                        
-                        // Scroll to chapter in sidebar (no jump, smooth)
-                        setTimeout(() => {
-                            const chapterElement = document.querySelector(`[onclick*="clickChapter('${lastChapterId}'"]`);
-                            if (chapterElement) {
-                                chapterElement.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-                            }
-                        }, 50);
-                    }, 100);
-                }
             }
             updateBulkActionBar('chapters'); lucide.createIcons();
         }
         
-        // Find path from root to target node (returns array of parent IDs)
-        function findPathToNode(nodes, targetId, path = []) {
-            for (let node of nodes) {
-                if (node.id === targetId) {
-                    return path;
-                }
-                if (node.children && node.children.length > 0) {
-                    const result = findPathToNode(node.children, targetId, [...path, node.id]);
-                    if (result) return result;
-                }
-            }
-            return null;
+        function findNode(nodes, id) {
+            for(let n of nodes) { if(n.id===id) return n; if(n.children) { const f = findNode(n.children, id); if(f) return f; } } return null;
         }
 
         function createChapterNode(node, depth) {
@@ -1227,9 +1335,10 @@
                 ? `<input type="checkbox" ${isSelected?'checked':''} class="mr-2 accent-indigo-600 h-4 w-4" onclick="toggleSelection('${node.id}'); renderChapters(); event.stopPropagation();">`
                 : `<input type="checkbox" ${isCompleted?'checked':''} data-chapter-checkbox="${node.id}" class="mr-2 accent-indigo-600 h-4 w-4" onclick="toggleChapterCompletion('${node.id}'); event.stopPropagation();" title="সম্পন্ন চিহ্নিত করুন">`;
             
+            // UPDATE: Hash Navigation in onclick
             div.innerHTML = `
             <div class="group flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer mb-1 select-none transition-all ${isActive ? 'bg-gray-200 dark:bg-gray-700/80 shadow-md' : ''}" 
-                 style="padding-left: ${padding}rem" onclick="clickChapter('${node.id}', event)">
+                 style="padding-left: ${padding}rem" onclick="navigateToChapter('${currentClass.id}', '${currentSubject.id}', '${node.id}')">
                 <div class="flex items-center gap-2 overflow-hidden w-full">
                     ${checkbox}
                     <i id="icon-${node.id}" data-lucide="${hasChildren ? 'chevron-right' : 'circle'}" class="h-4 w-4 ${isActive ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400'} transition-transform ${hasChildren && isOpen ? 'rotate-90' : ''} ${!hasChildren ? 'h-1.5 w-1.5 mt-0.5 ml-1' : ''}"></i>
@@ -1252,60 +1361,12 @@
             return div;
         }
 
-        function findNode(nodes, id) {
-            for(let n of nodes) { if(n.id===id) return n; if(n.children) { const f = findNode(n.children, id); if(f) return f; } } return null;
-        }
         function findParent(nodes, id) {
              for(let i=0; i<nodes.length; i++) {
                  if(nodes[i].id === id) return { p: nodes, i };
                  if(nodes[i].children) { const f = findParent(nodes[i].children, id); if(f) return f; }
              }
              return null;
-        }
-
-        function clickChapter(id, e, isAutoOpen = false) {
-            if(isEditMode && e && e.target && e.target.tagName === 'INPUT') return;
-            const node = findNode(currentSubject.chapters, id);
-            if (!node) return; // Safety check
-            
-            // End previous study session
-            if (studySessionStart) {
-                endStudySession();
-            }
-            
-            if(node.children && node.children.length > 0) {
-                const el = document.getElementById(`acc-${id}`);
-                if(el && el.classList.contains('open')) { el.classList.remove('open'); openAccordionIds.delete(id); }
-                else if(el) { el.classList.add('open'); openAccordionIds.add(id); }
-                if (!isAutoOpen) renderChapters(); 
-            }
-            currentChapterNode = node;
-            ensureContentStructure(currentChapterNode);
-            document.getElementById('chapter-title').innerText = node.title;
-            document.getElementById('content-empty').classList.add('hidden');
-            document.getElementById('content-tabs').classList.remove('hidden');
-            
-            // Re-render to update highlighting
-            if (!isAutoOpen) renderChapters();
-            else {
-                // For auto-open, just update the active chapter styling
-                setTimeout(() => renderChapters(), 50);
-            }
-            
-            switchTab(activeTab);
-            
-            // Save last chapter position (skip during auto-open to avoid overwriting)
-            if (!isAutoOpen) {
-                if (!lastReadPosition[currentClass.id]) lastReadPosition[currentClass.id] = {};
-                lastReadPosition[currentClass.id][currentSubject.id] = id;
-                localStorage.setItem('smartPathshala_lastRead', JSON.stringify(lastReadPosition));
-            }
-            
-            // Update URL
-            updateURL();
-            
-            // Start new study session
-            startStudySession(currentSubject.id, id);
         }
 
         function handleChapDragOver(e) {
@@ -1316,7 +1377,7 @@
             const id = e.currentTarget.parentNode.querySelector('.accordion-content').id.replace('acc-', '');
             if(y > rect.height * 0.25 && y < rect.height * 0.75) {
                  e.currentTarget.classList.add('drag-over-middle');
-                 if(!expandTimer) expandTimer = setTimeout(() => { if(document.querySelector('.drag-over-middle')) clickChapter(id); }, 800);
+                 if(!expandTimer) expandTimer = setTimeout(() => { if(document.querySelector('.drag-over-middle')) navigateToChapter(currentClass.id, currentSubject.id, id); }, 800);
             } else if (y < rect.height * 0.25) e.currentTarget.classList.add('drag-over-top');
             else e.currentTarget.classList.add('drag-over-bottom');
         }
@@ -1933,133 +1994,6 @@
                 overlay.classList.add('hidden');
             }
         });
-
-        window.onload = init;
-
-
-        // Hash-based URL Routing System (fixes 404 and back button)
-        function updateURL() {
-            let hash = '#/';
-            
-            if (currentClass) {
-                // Short URL: class-8 → 8
-                const classNum = currentClass.id.replace('class-', '');
-                hash += classNum;
-                
-                if (currentSubject) {
-                    // Short URL: sahitya-konika → first letter or short code
-                    hash += '/' + currentSubject.id;
-                    
-                    if (currentChapterNode) {
-                        // Short URL: chapter ID
-                        hash += '/' + currentChapterNode.id;
-                    }
-                }
-            }
-            
-            // Update hash without triggering hashchange event
-            if (window.location.hash !== hash) {
-                history.replaceState(null, '', hash);
-            }
-        }
-        
-        // Restore state from hash (NO ANIMATION)
-        function restoreFromHash() {
-            const hash = window.location.hash.slice(2); // Remove '#/'
-            const parts = hash.split('/').filter(p => p);
-            
-            if (parts.length === 0) {
-                // Show class selection
-                hideAllViews();
-                document.getElementById('view-classes').classList.remove('hidden');
-                currentClass = null;
-                currentSubject = null;
-                currentChapterNode = null;
-                return;
-            }
-            
-            const classNum = parts[0];
-            const subjectId = parts[1];
-            const chapterId = parts[2];
-            
-            // Find class
-            const classId = 'class-' + classNum;
-            const foundClass = classesData.junior.concat(classesData.secondary).find(c => c.id === classId);
-            
-            if (!foundClass) {
-                hideAllViews();
-                document.getElementById('view-classes').classList.remove('hidden');
-                return;
-            }
-            
-            // Set class (without triggering UI update if already set)
-            if (!currentClass || currentClass.id !== foundClass.id) {
-                currentClass = foundClass;
-            }
-            
-            if (!subjectId) {
-                // Show subjects
-                hideAllViews();
-                document.getElementById('view-subjects').classList.remove('hidden');
-                document.getElementById('selected-class-name').innerText = foundClass.name;
-                const gs = document.getElementById('group-selector-container');
-                if(foundClass.id===9||foundClass.id===11) gs.classList.remove('hidden');
-                else gs.classList.add('hidden');
-                renderSubjects();
-                return;
-            }
-            
-            // Find subject
-            const foundSubject = subjectsData[classId]?.find(s => s.id === subjectId);
-            if (!foundSubject) {
-                hideAllViews();
-                document.getElementById('view-subjects').classList.remove('hidden');
-                renderSubjects();
-                return;
-            }
-            
-            // Set subject (without animation)
-            if (!currentSubject || currentSubject.id !== foundSubject.id) {
-                currentSubject = foundSubject;
-                if(currentSubject.chapters) currentSubject.chapters.forEach(ensureContentStructure);
-                expandAllChapters(currentSubject.chapters);
-                
-                hideAllViews();
-                document.getElementById('view-reader').classList.remove('hidden');
-                document.getElementById('reader-subject-title').innerText = `${currentClass.name} > ${foundSubject.name}`;
-                document.getElementById('content-empty').classList.remove('hidden');
-                document.getElementById('content-tabs').classList.add('hidden');
-                renderChapters();
-            }
-            
-            if (chapterId) {
-                // Open chapter (instant, no animation)
-                const chapter = findNode(currentSubject.chapters, chapterId);
-                if (chapter && (!currentChapterNode || currentChapterNode.id !== chapterId)) {
-                    currentChapterNode = chapter;
-                    ensureContentStructure(currentChapterNode);
-                    document.getElementById('chapter-title').innerText = chapter.title;
-                    document.getElementById('content-empty').classList.add('hidden');
-                    document.getElementById('content-tabs').classList.remove('hidden');
-                    renderChapters();
-                    switchTab(activeTab);
-                    startStudySession(currentSubject.id, chapterId);
-                }
-            }
-        }
-        
-        // Handle browser back/forward buttons
-        window.addEventListener('hashchange', () => {
-            restoreFromHash();
-        });
-        
-        // Initialize from hash on page load
-        // Always call restoreFromHash - it will show homepage if no hash
-        setTimeout(() => restoreFromHash(), 50);
-
-
-        });
-
 
         // --- CHART RENDERING FUNCTIONS ---
         let charts = {}; // Store chart instances
@@ -2868,8 +2802,6 @@
             return formatTime(totalSeconds);
         }
         
-
-
         // --- PROGRESS TRACKING FUNCTIONS ---
         function toggleChapterCompletion(chapterId) {
             if (!progressData[currentClass.id]) progressData[currentClass.id] = {};
@@ -2924,6 +2856,8 @@
             }
             if (progressText) progressText.innerText = `${progress}%`;
         }
+
+        window.onload = init;
     </script>
 </body>
 </html>
