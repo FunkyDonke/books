@@ -2045,15 +2045,19 @@
                 hideAllViews();
                 document.getElementById('view-reader').classList.remove('hidden');
                 document.getElementById('reader-subject-title').innerText = currentSubject.name;
-                renderChapterTree(currentSubject.chapters);
+                
+                // Render the chapter tree
+                renderChapters();
                 
                 if (chapterId) {
                     // Find and open chapter directly
                     const chapter = findNode(currentSubject.chapters, chapterId);
                     if (chapter) {
-                        currentChapterNode = chapter;
-                        loadChapterContent(chapter);
+                        clickChapter(chapterId, null, true);
                     }
+                } else {
+                    // No specific chapter, just show the subject with empty state
+                    lucide.createIcons();
                 }
             } finally {
                 isNavigating = false;
