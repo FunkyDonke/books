@@ -151,6 +151,14 @@
 
         /* Loading Overlay for Auto Import */
         #auto-import-overlay { z-index: 9999; }
+        /* Center content when sidebar is hidden on desktop */
+        @media (min-width: 1024px) {
+            .sidebar-hidden .content-area {
+                margin-left: auto;
+                margin-right: auto;
+                max-width: 1400px;
+            }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-gray-800 bg-gray-50 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300">
@@ -280,8 +288,7 @@
                     <!-- Mobile Sidebar Overlay -->
                     <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/60 z-40 lg:hidden" onclick="toggleSidebar()"></div>
 
-                    <!-- Reader Flex Container with Dynamic Gap -->
-                    <div id="reader-flex-container" class="flex gap-0 lg:gap-6 h-full pb-2 overflow-hidden transition-all duration-300">
+                    <div class="flex gap-0 lg:gap-6 h-full pb-2 overflow-hidden">
                         <!-- Sidebar (Table of Contents) - Collapsible & Responsive -->
                         <div id="reader-sidebar" class="fixed lg:relative top-0 left-0 h-full w-80 lg:w-80 flex-shrink-0 flex-col z-50 lg:z-auto bg-white dark:bg-gray-900 shadow-2xl lg:shadow-sm border-r lg:border lg:rounded-2xl border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-300 -translate-x-full lg:translate-x-0 lg:flex">
                             <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
@@ -301,7 +308,7 @@
                         </div>
 
                         <!-- Content Area (Reader Features) - Full Width Responsive -->
-                        <div class="flex-grow h-full w-full bg-white dark:bg-gray-900 lg:rounded-2xl shadow-sm lg:border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col relative">
+                        <div class="content-area flex-grow h-full w-full bg-white dark:bg-gray-900 lg:rounded-2xl shadow-sm lg:border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col relative">
                             <!-- Content Header with Tabs -->
                             <div class="flex-none border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
                                 <div class="p-4 md:p-6 pb-2">
@@ -730,15 +737,6 @@
             9: 'index/ssc.txt',  // Class 9 (SSC)
             11: 'index/hsc.txt' // Class 11 (HSC)
         };
-        
-        // Define CONST_CLASSES globally so it can be used for restoring state
-        const CONST_CLASSES = [
-            { id: 6, name: 'ষষ্ঠ শ্রেণী', icon: 'graduation-cap', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' },
-            { id: 7, name: 'সপ্তম শ্রেণী', icon: 'book-open', color: 'text-green-600 bg-green-50 dark:bg-green-900/20' },
-            { id: 8, name: 'অষ্টম শ্রেণী', icon: 'library', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' },
-            { id: 9, name: 'এসএসসি', icon: 'microscope', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' },
-            { id: 11, name: 'এইচএসসি', icon: 'atom', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' }
-        ];
 
         let subjectsData = {};
         let currentClass = null;
@@ -1040,8 +1038,14 @@
         function renderClassCards() {
             const rowJun = document.getElementById('row-junior'); const rowSen = document.getElementById('row-senior');
             rowJun.innerHTML = ''; rowSen.innerHTML = ''; // Clear first to avoid duplicates on reset
-            // Using global CONST_CLASSES
-            CONST_CLASSES.forEach(c => {
+            const classes = [
+                { id: 6, name: 'ষষ্ঠ শ্রেণী', icon: 'graduation-cap', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' },
+                { id: 7, name: 'সপ্তম শ্রেণী', icon: 'book-open', color: 'text-green-600 bg-green-50 dark:bg-green-900/20' },
+                { id: 8, name: 'অষ্টম শ্রেণী', icon: 'library', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' },
+                { id: 9, name: 'এসএসসি', icon: 'microscope', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' },
+                { id: 11, name: 'এইচএসসি', icon: 'atom', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' }
+            ];
+            classes.forEach(c => {
                 const el = document.createElement('div');
                 el.className = `w-40 md:w-56 h-36 md:h-48 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center cursor-pointer card-hover p-4`;
                 el.onclick = () => selectClass(c.id, c.name);
@@ -1873,7 +1877,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('reader-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            const flexContainer = document.getElementById('reader-flex-container');
+            const readerView = document.getElementById('view-reader');
             const isMobile = window.innerWidth < 1024;
             
             if (isMobile) {
@@ -1897,18 +1901,12 @@
                     // Hide sidebar
                     sidebar.classList.remove('lg:w-80');
                     sidebar.classList.add('lg:w-0', 'lg:overflow-hidden', 'lg:opacity-0');
-                    
-                    // FIXED: Remove gap when sidebar is hidden to ensure symmetric padding
-                    flexContainer.classList.remove('lg:gap-6');
-                    flexContainer.classList.add('lg:gap-0');
+                    readerView.classList.add('sidebar-hidden');
                 } else {
                     // Show sidebar
                     sidebar.classList.add('lg:w-80');
                     sidebar.classList.remove('lg:w-0', 'lg:overflow-hidden', 'lg:opacity-0');
-                    
-                    // FIXED: Restore gap when sidebar is visible
-                    flexContainer.classList.remove('lg:gap-0');
-                    flexContainer.classList.add('lg:gap-6');
+                    readerView.classList.remove('sidebar-hidden');
                 }
             }
             
@@ -1920,7 +1918,6 @@
         window.addEventListener('resize', () => {
             const sidebar = document.getElementById('reader-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            const flexContainer = document.getElementById('reader-flex-container');
             if (!sidebar) return;
             
             if (window.innerWidth >= 1024) {
@@ -1929,12 +1926,6 @@
                 sidebar.classList.add('lg:flex', 'lg:w-80');
                 sidebar.classList.remove('lg:w-0', 'lg:overflow-hidden', 'lg:opacity-0');
                 overlay.classList.add('hidden');
-                
-                // Restore gap on desktop resize
-                if (flexContainer) {
-                    flexContainer.classList.remove('lg:gap-0');
-                    flexContainer.classList.add('lg:gap-6');
-                }
             } else {
                 // Mobile: reset to closed state, remove desktop classes
                 sidebar.classList.add('-translate-x-full');
@@ -1945,102 +1936,132 @@
 
         window.onload = init;
 
-        // URL Routing System
+
+        // Hash-based URL Routing System (fixes 404 and back button)
         function updateURL() {
-            let path = '/books/';
+            let hash = '#/';
             
             if (currentClass) {
-                path += currentClass.id + '/';
+                // Short URL: class-8 → 8
+                const classNum = currentClass.id.replace('class-', '');
+                hash += classNum;
                 
                 if (currentSubject) {
-                    path += currentSubject.id + '/';
+                    // Short URL: sahitya-konika → first letter or short code
+                    hash += '/' + currentSubject.id;
                     
                     if (currentChapterNode) {
-                        path += currentChapterNode.id;
+                        // Short URL: chapter ID
+                        hash += '/' + currentChapterNode.id;
                     }
                 }
             }
             
-            // Use Hash Routing to prevent 404 errors on static hosts (like GitHub Pages)
-            if(window.location.hash !== '#' + path) {
-                window.location.hash = path;
+            // Update hash without triggering hashchange event
+            if (window.location.hash !== hash) {
+                history.replaceState(null, '', hash);
             }
         }
         
-        // FIXED: Restore state from URL with correct data access
-        function restoreFromURL() {
-            // Use Hash instead of Pathname
-            const hash = window.location.hash;
-            const path = hash.startsWith('#') ? hash.slice(1) : hash;
-            
-            const parts = path.split('/').filter(p => p && p !== 'books');
+        // Restore state from hash (NO ANIMATION)
+        function restoreFromHash() {
+            const hash = window.location.hash.slice(2); // Remove '#/'
+            const parts = hash.split('/').filter(p => p);
             
             if (parts.length === 0) {
-                // Show class selection
-                goHome(); // FIXED: Replaced undefined showClasses() with goHome()
+                // Show class selection (only if not already showing)
+                if (!document.getElementById('view-classes').classList.contains('hidden')) return;
+                hideAllViews();
+                document.getElementById('view-classes').classList.remove('hidden');
+                currentClass = null;
+                currentSubject = null;
+                currentChapterNode = null;
                 return;
             }
             
-            const classId = parts[0];
+            const classNum = parts[0];
             const subjectId = parts[1];
             const chapterId = parts[2];
             
-            // Find and set class
-            // FIXED: Using CONST_CLASSES instead of undefined classesData
-            const foundClass = CONST_CLASSES.find(c => c.id == classId);
+            // Find class
+            const classId = 'class-' + classNum;
+            const foundClass = classesData.junior.concat(classesData.secondary).find(c => c.id === classId);
             
             if (!foundClass) {
-                goHome();
+                hideAllViews();
+                document.getElementById('view-classes').classList.remove('hidden');
                 return;
             }
             
-            currentClass = foundClass;
+            // Set class (without triggering UI update if already set)
+            if (!currentClass || currentClass.id !== foundClass.id) {
+                currentClass = foundClass;
+            }
             
             if (!subjectId) {
-                // Show subjects
-                selectClass(foundClass.id, foundClass.name);
+                // Show subjects (only if not already showing)
+                if (!document.getElementById('view-subjects').classList.contains('hidden')) return;
+                hideAllViews();
+                document.getElementById('view-subjects').classList.remove('hidden');
+                document.getElementById('selected-class-name').innerText = foundClass.name;
+                const gs = document.getElementById('group-selector-container');
+                if(foundClass.id===9||foundClass.id===11) gs.classList.remove('hidden');
+                else gs.classList.add('hidden');
+                renderSubjects();
                 return;
             }
             
-            // Load subjects for this class if not loaded yet (edge case)
-            if (!subjectsData[classId] || subjectsData[classId].length === 0) {
-                // If data isn't loaded yet, we can't deep link immediately.
-                // Just go to class selection for safety.
-                selectClass(foundClass.id, foundClass.name);
-                return;
-            }
-
-            // Find and set subject
+            // Find subject
             const foundSubject = subjectsData[classId]?.find(s => s.id === subjectId);
             if (!foundSubject) {
-                showSubjects();
+                hideAllViews();
+                document.getElementById('view-subjects').classList.remove('hidden');
+                renderSubjects();
                 return;
             }
             
-            currentSubject = foundSubject;
-            openReader(foundSubject);
+            // Set subject (without animation)
+            if (!currentSubject || currentSubject.id !== foundSubject.id) {
+                currentSubject = foundSubject;
+                if(currentSubject.chapters) currentSubject.chapters.forEach(ensureContentStructure);
+                expandAllChapters(currentSubject.chapters);
+                
+                hideAllViews();
+                document.getElementById('view-reader').classList.remove('hidden');
+                document.getElementById('reader-subject-title').innerText = `${currentClass.name} > ${foundSubject.name}`;
+                document.getElementById('content-empty').classList.remove('hidden');
+                document.getElementById('content-tabs').classList.add('hidden');
+                renderChapters();
+            }
             
             if (chapterId) {
-                // Find and open chapter
-                setTimeout(() => {
-                    const chapter = findNode(currentSubject.chapters, chapterId);
-                    if (chapter) {
-                        clickChapter(chapterId, null, false);
-                    }
-                }, 200);
+                // Open chapter (instant, no animation)
+                const chapter = findNode(currentSubject.chapters, chapterId);
+                if (chapter && (!currentChapterNode || currentChapterNode.id !== chapterId)) {
+                    currentChapterNode = chapter;
+                    ensureContentStructure(currentChapterNode);
+                    document.getElementById('chapter-title').innerText = chapter.title;
+                    document.getElementById('content-empty').classList.add('hidden');
+                    document.getElementById('content-tabs').classList.remove('hidden');
+                    renderChapters();
+                    switchTab(activeTab);
+                    startStudySession(currentSubject.id, chapterId);
+                }
             }
         }
         
-        // Handle browser back/forward buttons using hashchange
-        window.addEventListener('hashchange', restoreFromURL);
+        // Handle browser back/forward buttons
+        window.addEventListener('hashchange', () => {
+            restoreFromHash();
+        });
         
-        // Initialize from URL on page load
-        window.addEventListener('load', () => {
-            // Only try to restore if hash exists and isn't just root
-            if (window.location.hash && window.location.hash !== '#/') {
-                // Small delay to ensure data is loaded
-                setTimeout(restoreFromURL, 500);
-            }
+        // Initialize from hash on page load
+        if (window.location.hash) {
+            // Delay slightly to ensure DOM is ready
+            setTimeout(() => restoreFromHash(), 50);
+        }
+
+
         });
 
 
