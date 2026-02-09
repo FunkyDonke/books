@@ -280,7 +280,8 @@
                     <!-- Mobile Sidebar Overlay -->
                     <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/60 z-40 lg:hidden" onclick="toggleSidebar()"></div>
 
-                    <div class="flex gap-0 lg:gap-6 h-full pb-2 overflow-hidden">
+                    <!-- Reader Flex Container with Dynamic Gap -->
+                    <div id="reader-flex-container" class="flex gap-0 lg:gap-6 h-full pb-2 overflow-hidden transition-all duration-300">
                         <!-- Sidebar (Table of Contents) - Collapsible & Responsive -->
                         <div id="reader-sidebar" class="fixed lg:relative top-0 left-0 h-full w-80 lg:w-80 flex-shrink-0 flex-col z-50 lg:z-auto bg-white dark:bg-gray-900 shadow-2xl lg:shadow-sm border-r lg:border lg:rounded-2xl border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-300 -translate-x-full lg:translate-x-0 lg:flex">
                             <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
@@ -729,6 +730,15 @@
             9: 'index/ssc.txt',  // Class 9 (SSC)
             11: 'index/hsc.txt' // Class 11 (HSC)
         };
+        
+        // Define CONST_CLASSES globally so it can be used for restoring state
+        const CONST_CLASSES = [
+            { id: 6, name: 'ষষ্ঠ শ্রেণী', icon: 'graduation-cap', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' },
+            { id: 7, name: 'সপ্তম শ্রেণী', icon: 'book-open', color: 'text-green-600 bg-green-50 dark:bg-green-900/20' },
+            { id: 8, name: 'অষ্টম শ্রেণী', icon: 'library', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' },
+            { id: 9, name: 'এসএসসি', icon: 'microscope', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' },
+            { id: 11, name: 'এইচএসসি', icon: 'atom', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' }
+        ];
 
         let subjectsData = {};
         let currentClass = null;
@@ -1030,14 +1040,8 @@
         function renderClassCards() {
             const rowJun = document.getElementById('row-junior'); const rowSen = document.getElementById('row-senior');
             rowJun.innerHTML = ''; rowSen.innerHTML = ''; // Clear first to avoid duplicates on reset
-            const classes = [
-                { id: 6, name: 'ষষ্ঠ শ্রেণী', icon: 'graduation-cap', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' },
-                { id: 7, name: 'সপ্তম শ্রেণী', icon: 'book-open', color: 'text-green-600 bg-green-50 dark:bg-green-900/20' },
-                { id: 8, name: 'অষ্টম শ্রেণী', icon: 'library', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' },
-                { id: 9, name: 'এসএসসি', icon: 'microscope', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' },
-                { id: 11, name: 'এইচএসসি', icon: 'atom', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20' }
-            ];
-            classes.forEach(c => {
+            // Using global CONST_CLASSES
+            CONST_CLASSES.forEach(c => {
                 const el = document.createElement('div');
                 el.className = `w-40 md:w-56 h-36 md:h-48 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center justify-center cursor-pointer card-hover p-4`;
                 el.onclick = () => selectClass(c.id, c.name);
@@ -1869,6 +1873,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('reader-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
+            const flexContainer = document.getElementById('reader-flex-container');
             const isMobile = window.innerWidth < 1024;
             
             if (isMobile) {
@@ -1892,10 +1897,18 @@
                     // Hide sidebar
                     sidebar.classList.remove('lg:w-80');
                     sidebar.classList.add('lg:w-0', 'lg:overflow-hidden', 'lg:opacity-0');
+                    
+                    // FIXED: Remove gap when sidebar is hidden to ensure symmetric padding
+                    flexContainer.classList.remove('lg:gap-6');
+                    flexContainer.classList.add('lg:gap-0');
                 } else {
                     // Show sidebar
                     sidebar.classList.add('lg:w-80');
                     sidebar.classList.remove('lg:w-0', 'lg:overflow-hidden', 'lg:opacity-0');
+                    
+                    // FIXED: Restore gap when sidebar is visible
+                    flexContainer.classList.remove('lg:gap-0');
+                    flexContainer.classList.add('lg:gap-6');
                 }
             }
             
@@ -1907,6 +1920,7 @@
         window.addEventListener('resize', () => {
             const sidebar = document.getElementById('reader-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
+            const flexContainer = document.getElementById('reader-flex-container');
             if (!sidebar) return;
             
             if (window.innerWidth >= 1024) {
@@ -1915,6 +1929,12 @@
                 sidebar.classList.add('lg:flex', 'lg:w-80');
                 sidebar.classList.remove('lg:w-0', 'lg:overflow-hidden', 'lg:opacity-0');
                 overlay.classList.add('hidden');
+                
+                // Restore gap on desktop resize
+                if (flexContainer) {
+                    flexContainer.classList.remove('lg:gap-0');
+                    flexContainer.classList.add('lg:gap-6');
+                }
             } else {
                 // Mobile: reset to closed state, remove desktop classes
                 sidebar.classList.add('-translate-x-full');
@@ -1942,21 +1962,26 @@
             }
             
             // Update URL without reload
-            window.history.pushState({
-                classId: currentClass?.id,
-                subjectId: currentSubject?.id,
-                chapterId: currentChapterNode?.id
-            }, '', path);
+            try {
+                window.history.pushState({
+                    classId: currentClass?.id,
+                    subjectId: currentSubject?.id,
+                    chapterId: currentChapterNode?.id
+                }, '', path);
+            } catch (e) {
+                // Fallback for file:// protocol or if pushState fails
+                console.log("Routing update skipped (likely file protocol)");
+            }
         }
         
-        // Restore state from URL
+        // FIXED: Restore state from URL with correct data access
         function restoreFromURL() {
             const path = window.location.pathname;
             const parts = path.split('/').filter(p => p && p !== 'books');
             
             if (parts.length === 0) {
                 // Show class selection
-                showClasses();
+                goHome(); // FIXED: Replaced undefined showClasses() with goHome()
                 return;
             }
             
@@ -1965,9 +1990,11 @@
             const chapterId = parts[2];
             
             // Find and set class
-            const foundClass = classesData.junior.concat(classesData.secondary).find(c => c.id === classId);
+            // FIXED: Using CONST_CLASSES instead of undefined classesData
+            const foundClass = CONST_CLASSES.find(c => c.id == classId);
+            
             if (!foundClass) {
-                showClasses();
+                goHome();
                 return;
             }
             
@@ -1975,10 +2002,18 @@
             
             if (!subjectId) {
                 // Show subjects
-                showSubjects();
+                selectClass(foundClass.id, foundClass.name);
                 return;
             }
             
+            // Load subjects for this class if not loaded yet (edge case)
+            if (!subjectsData[classId] || subjectsData[classId].length === 0) {
+                // If data isn't loaded yet, we can't deep link immediately.
+                // Just go to class selection for safety.
+                selectClass(foundClass.id, foundClass.name);
+                return;
+            }
+
             // Find and set subject
             const foundSubject = subjectsData[classId]?.find(s => s.id === subjectId);
             if (!foundSubject) {
@@ -2003,16 +2038,25 @@
         // Handle browser back/forward buttons
         window.addEventListener('popstate', (event) => {
             if (event.state) {
-                restoreFromURL();
+                // Use state object if available for smoother navigation
+                if (!event.state.classId) {
+                    goHome();
+                } else {
+                    // We can reconstruct current state from event.state
+                    // But restoreFromURL handles logic well, so we call it.
+                    restoreFromURL();
+                }
             } else {
-                showClasses();
+                restoreFromURL();
             }
         });
         
         // Initialize from URL on page load
         window.addEventListener('load', () => {
+            // Only try to restore if we are not at root
             if (window.location.pathname !== '/' && window.location.pathname !== '/books/' && window.location.pathname !== '/books') {
-                restoreFromURL();
+                // Small delay to ensure data is loaded
+                setTimeout(restoreFromURL, 500);
             }
         });
 
