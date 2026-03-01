@@ -268,6 +268,23 @@
                                                 <button onclick="closeToolsMenuSubjects();toggleTheme();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
                                                     <i data-lucide="moon" class="h-4 w-4"></i> থিম পরিবর্তন
                                                 </button>
+                                                <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                                <div class="px-4 py-3">
+                                                    <div class="flex items-center justify-between mb-2">
+                                                        <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                                            <i data-lucide="type" class="h-4 w-4"></i>
+                                                            <span>ফন্ট সাইজ</span>
+                                                        </div>
+                                                        <span id="font-size-label-sub" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">100%</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-xs text-gray-400 select-none font-bold" style="font-size:10px">A</span>
+                                                        <input type="range" id="font-size-slider-sub" min="10" max="200" step="1" value="100"
+                                                            oninput="applyFontSize(this.value)"
+                                                            class="flex-1 h-1.5 rounded-full appearance-none cursor-pointer accent-indigo-600">
+                                                        <span class="text-sm text-gray-400 select-none font-bold">A</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -326,8 +343,8 @@
 
                             <!-- Content Header with Tabs -->
                             <div id="reader-subject-header" class="flex-none border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50" style="overflow:visible;position:relative;z-index:10">
-                                <div class="p-2 md:p-6 pb-2">
-                                    <div class="flex items-start gap-1 md:gap-3">
+                                <div class="p-4 md:p-6 pb-2">
+                                    <div class="flex items-start gap-3">
                                         <!-- Back button (always visible) -->
                                         <button onclick="showSubjects()" class="flex-shrink-0 p-2 mt-1 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors" title="বিষয় তালিকায় ফিরুন">
                                             <i data-lucide="arrow-left" class="h-5 w-5"></i>
@@ -337,7 +354,7 @@
                                             <i data-lucide="panel-left" class="h-5 w-5"></i>
                                         </button>
                                         <div class="flex-grow min-w-0">
-                                            <h1 id="chapter-title" class="text-sm md:text-2xl font-bold text-gray-900 dark:text-white truncate">স্বাগতম</h1>
+                                            <h1 id="chapter-title" class="text-lg md:text-2xl font-bold text-gray-900 dark:text-white truncate">স্বাগতম</h1>
                                             <p id="reader-subject-title" class="text-xs md:text-sm text-gray-500 mt-1 truncate">বিষয় নির্বাচন করুন</p>
                                         </div>
 
@@ -370,6 +387,23 @@
                                     <button onclick="closeToolsMenu();toggleTheme();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
                                         <i data-lucide="moon" id="theme-icon" class="h-4 w-4"></i> থিম পরিবর্তন
                                     </button>
+                                    <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                    <div class="px-4 py-3">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                                <i data-lucide="type" class="h-4 w-4"></i>
+                                                <span>ফন্ট সাইজ</span>
+                                            </div>
+                                            <span id="font-size-label" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">100%</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-400 select-none font-bold" style="font-size:10px">A</span>
+                                            <input type="range" id="font-size-slider" min="10" max="200" step="1" value="100"
+                                                oninput="applyFontSize(this.value)"
+                                                class="flex-1 h-1.5 rounded-full appearance-none cursor-pointer accent-indigo-600">
+                                            <span class="text-sm text-gray-400 select-none font-bold">A</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -380,7 +414,6 @@
                                 <!-- Tabs + actions row -->
                                 <div id="content-tabs" class="hidden" style="display:none">
                                     <div class="flex items-center border-t border-gray-100 dark:border-gray-800" style="min-width:0">
-                                        <!-- Tab buttons: icon+label on desktop, icon-only on mobile -->
                                         <div class="flex flex-1 overflow-x-auto min-w-0" style="scrollbar-width:none">
                                             <button onclick="switchTab('text')" id="tab-btn-text" class="tab-btn flex-shrink-0 px-3 md:px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 flex items-center gap-1.5 whitespace-nowrap" title="ডিজিটাল পাঠ">
                                                 <i data-lucide="file-text" class="h-4 w-4 flex-shrink-0"></i>
@@ -399,24 +432,17 @@
                                                 <span class="hidden sm:inline">প্রশ্ন ও উত্তর</span>
                                             </button>
                                         </div>
-                                        <!-- Per-tab action buttons: icon-only on mobile -->
                                         <div class="flex-shrink-0 flex items-center gap-0.5 px-2 border-l border-gray-100 dark:border-gray-800">
                                             <div id="tab-actions-text" style="display:none" class="hidden items-center gap-0.5">
-                                                <!-- Font Size Control -->
-                                                <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg px-2 py-1 mr-1">
-                                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400 select-none" style="font-size:10px">A</span>
-                                                    <input type="range" id="font-size-slider" min="10" max="200" step="1" value="100"
-                                                        oninput="applyFontSize(this.value)"
-                                                        class="w-16 md:w-24 h-1.5 rounded-full appearance-none cursor-pointer accent-indigo-600"
-                                                        title="ফন্ট সাইজ পরিবর্তন করুন">
-                                                    <span class="text-sm font-bold text-gray-500 dark:text-gray-400 select-none">A</span>
-                                                    <span id="font-size-label" class="text-xs text-indigo-600 dark:text-indigo-400 min-w-[30px] text-center font-medium">100%</span>
-                                                </div>
+                                                <button onclick="toggleBookView()" id="btn-book-view" class="text-amber-600 hover:bg-amber-50 dark:hover:bg-gray-700 p-1.5 md:px-2.5 md:py-1.5 rounded-lg flex items-center gap-1 transition" title="বই মোড">
+                                                    <i data-lucide="book-open" class="h-3.5 w-3.5 flex-shrink-0"></i>
+                                                    <span class="hidden md:inline text-xs">বই মোড</span>
+                                                </button>
                                                 <button onclick="openAddTextLinkModal()" class="text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-700 p-1.5 md:px-2.5 md:py-1.5 rounded-lg flex items-center gap-1 transition" title="ক্লাউড লিংক">
                                                     <i data-lucide="cloud" class="h-3.5 w-3.5 flex-shrink-0"></i>
                                                     <span class="hidden md:inline text-xs">ক্লাউড লিংক</span>
                                                 </button>
-                                                <label class="cursor-pointer text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-700 p-1.5 md:px-2.5 md:py-1.5 rounded-lg flex items-center gap-1 transition" title="ফাইল আপলোড">
+                                                <label class="cursor-pointer text-indigo-600 hover:bg-indigo-50 dark:hover:bg-gray-700 p-1.5 md:px-2.5 md:py-1.5 rounded-lg flex items-center gap-1 transition" title="ফাইল">
                                                     <i data-lucide="upload" class="h-3.5 w-3.5 flex-shrink-0"></i>
                                                     <span class="hidden md:inline text-xs">ফাইল</span>
                                                     <input type="file" class="hidden" accept=".txt,.md" onchange="loadLocalTextFile(this)">
@@ -463,12 +489,45 @@
                                 </div>
 
                                 <!-- Tab: Text (Digital) -->
-                                <div id="tab-content-text" class="hidden flex flex-col min-h-full">
+                                <div id="tab-content-text" class="hidden" style="position:relative;display:none;flex-direction:column;min-height:0;flex:1;">
 
                                     <div id="loading-indicator" class="hidden flex justify-center items-center py-10">
                                         <i data-lucide="loader-2" class="animate-spin h-8 w-8 text-indigo-600"></i>
                                     </div>
-                                    <div id="render-markdown" class="prose dark:prose-invert max-w-none p-6 md:p-10" style="font-size: var(--reader-font-size, 1rem); line-height: var(--reader-line-height, 1.8);"></div>
+                                    <!-- Normal reading view -->
+                                    <div id="render-markdown" class="prose dark:prose-invert max-w-none p-6 md:p-10" style="font-size:var(--reader-font-size,1rem);line-height:var(--reader-line-height,1.8);"></div>
+
+                                    <!-- Book view: same area as normal reader, paper style -->
+                                    <div id="book-view-container" style="display:none;flex:1;min-height:0;overflow:hidden;background:#ddd8cc;padding:12px 16px 8px;">
+                                        <!-- Spread wrapper -->
+                                        <div id="book-spread" style="display:flex;flex:1;min-height:0;gap:0;border-radius:4px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.22);">
+                                            <!-- Left page -->
+                                            <div id="book-page-L" style="flex:1;background:#fdf8f0;position:relative;display:none;">
+                                                <div id="book-header-L" style="position:absolute;top:0;left:0;right:0;height:2rem;display:flex;align-items:flex-end;justify-content:center;padding-bottom:0.3rem;border-bottom:1px solid #d4c9b8;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:#9c8e7e;"></div>
+                                                <div id="book-canvas-L" class="prose" style="position:absolute;top:2.2rem;left:1.8rem;right:1rem;bottom:2rem;overflow:hidden;font-size:var(--reader-font-size,1rem);line-height:var(--reader-line-height,1.8);color:#2c2c2c;text-align:justify;"></div>
+                                                <div id="book-num-L" style="position:absolute;bottom:0.5rem;left:1.8rem;font-size:0.68rem;color:#9c8e7e;font-style:italic;"></div>
+                                            </div>
+                                            <!-- Spine -->
+                                            <div id="book-spine" style="width:8px;flex-shrink:0;background:linear-gradient(to right,#b0a090,#e2d8c8,#b0a090);box-shadow:2px 0 6px rgba(0,0,0,0.12),-2px 0 6px rgba(0,0,0,0.12);display:none;"></div>
+                                            <!-- Right page -->
+                                            <div id="book-page-R" style="flex:1;background:#fdf8f0;position:relative;">
+                                                <div id="book-header-R" style="position:absolute;top:0;left:0;right:0;height:2rem;display:flex;align-items:flex-end;justify-content:center;padding-bottom:0.3rem;border-bottom:1px solid #d4c9b8;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:#9c8e7e;"></div>
+                                                <div id="book-canvas-R" class="prose" style="position:absolute;top:2.2rem;left:1rem;right:1.8rem;bottom:2rem;overflow:hidden;font-size:var(--reader-font-size,1rem);line-height:var(--reader-line-height,1.8);color:#2c2c2c;text-align:justify;"></div>
+                                                <div id="book-num-R" style="position:absolute;bottom:0.5rem;right:1.8rem;font-size:0.68rem;color:#9c8e7e;font-style:italic;"></div>
+                                            </div>
+                                        </div>
+                                        <!-- Bottom bar: counter + nav -->
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:4px 0;position:relative;">
+                                            <button onclick="bookPrev()" id="book-btn-prev" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.85);border:1px solid #ccc5b8;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.12);">
+                                                <i data-lucide="chevron-left" style="width:14px;height:14px;color:#6b5e50;pointer-events:none;"></i>
+                                            </button>
+                                            <span id="book-counter" style="font-size:0.7rem;color:#9c8e7e;letter-spacing:0.05em;min-width:50px;text-align:center;"></span>
+                                            <button onclick="bookNext()" id="book-btn-next" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.85);border:1px solid #ccc5b8;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.12);">
+                                                <i data-lucide="chevron-right" style="width:14px;height:14px;color:#6b5e50;pointer-events:none;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div id="empty-text-msg" class="hidden flex-grow flex flex-col items-center justify-center text-gray-400">
                                         <i data-lucide="file-text" class="h-10 w-10 mb-2 opacity-30"></i>
                                         <p>কোন টেক্সট নেই</p>
@@ -2945,8 +3004,7 @@
                 sidebar.classList.remove('-translate-x-full');
                 sidebar.classList.add('flex');
                 if (overlay) overlay.classList.remove('hidden');
-            } else {
-                // Desktop: restore last state
+            } else if (window.innerWidth >= 1024) {
                 if (sessionStorage.getItem('sidebarHidden')) {
                     sidebar.classList.add('lg:w-0', 'lg:opacity-0', 'lg:pointer-events-none');
                     if (panels) panels.classList.remove('lg:gap-6');
@@ -3209,7 +3267,7 @@
             // pdf and video need fixed height (iframe), text/qna need scroll
             const contentBody = document.getElementById('content-body');
             if (contentBody) {
-                if (tab === 'pdf' || tab === 'video') {
+                if (tab === 'pdf' || tab === 'video' || (tab === 'text' && bookMode)) {
                     contentBody.style.overflowY = 'hidden';
                 } else {
                     contentBody.style.overflowY = 'auto';
@@ -3262,6 +3320,7 @@
                         .catch(err => { viewer.innerHTML = `<div class="text-red-500 text-center">Error: ${err.message}</div>`; loader.classList.add('hidden'); });
                 } else if (content.text && content.text.trim()) {
                     viewer.innerHTML = marked.parse(content.text);
+                    if (bookMode) { setTimeout(buildBookPages, 60); }
                 } else {
                     emptyMsg.classList.remove('hidden');
                 }
@@ -3545,27 +3604,236 @@
              });
         }
 
-        function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); lucide.createIcons(); }
 
-        // ---- Font Size Control ----
+        // ---- Add button dropdown ----
+        let _addMenuOpen = false;
+        function closeAddMenu() {
+            const p = document.getElementById('add-menu-panel');
+            if (p) p.style.display = 'none';
+            _addMenuOpen = false;
+        }
+        function toggleAddMenu() {
+            _addMenuOpen ? closeAddMenu() : (() => {
+                document.getElementById('add-menu-panel').style.display = 'block';
+                _addMenuOpen = true;
+            })();
+        }
+        document.addEventListener('click', function(e) {
+            const w = document.getElementById('add-btn-wrapper');
+            const p = document.getElementById('add-menu-panel');
+            if (p && w && !w.contains(e.target)) { p.style.display='none'; _addMenuOpen=false; }
+        }, true);
+
+        // ---- Reader tools menu ----
+        let _toolsMenuOpen = false;
+        function closeToolsMenu() {
+            const p = document.getElementById('tools-menu-panel');
+            if (p) p.style.display = 'none';
+            _toolsMenuOpen = false;
+        }
+        function toggleToolsMenu() {
+            const p = document.getElementById('tools-menu-panel');
+            const btn = document.getElementById('tools-menu-btn');
+            if (!p || !btn) return;
+            if (_toolsMenuOpen) { closeToolsMenu(); return; }
+            const r = btn.getBoundingClientRect();
+            p.style.top = (r.bottom + 4) + 'px';
+            p.style.right = (window.innerWidth - r.right) + 'px';
+            p.style.left = 'auto';
+            p.style.display = 'block';
+            _toolsMenuOpen = true;
+        }
+        document.addEventListener('click', function(e) {
+            const w1 = document.getElementById('tools-menu-wrapper');
+            const p  = document.getElementById('tools-menu-panel');
+            if (p && w1 && !w1.contains(e.target) && !p.contains(e.target)) { closeToolsMenu(); }
+        }, true);
+
+        // ---- Subjects tools menu ----
+        let _toolsMenuSubjectsOpen = false;
+        function closeToolsMenuSubjects() {
+            const p = document.getElementById('tools-menu-panel-subjects');
+            if (p) p.style.display = 'none';
+            _toolsMenuSubjectsOpen = false;
+        }
+        function toggleToolsMenuSubjects() {
+            const p = document.getElementById('tools-menu-panel-subjects');
+            const btn = document.querySelector('#tools-menu-wrapper-subjects button');
+            if (!p || !btn) return;
+            if (_toolsMenuSubjectsOpen) { closeToolsMenuSubjects(); return; }
+            const r = btn.getBoundingClientRect();
+            p.style.top = (r.bottom + 4) + 'px';
+            p.style.right = (window.innerWidth - r.right) + 'px';
+            p.style.left = 'auto';
+            p.style.display = 'block';
+            _toolsMenuSubjectsOpen = true;
+        }
+        document.addEventListener('click', function(e) {
+            const w2 = document.getElementById('tools-menu-wrapper-subjects');
+            const p  = document.getElementById('tools-menu-panel-subjects');
+            if (p && w2 && !w2.contains(e.target) && !p.contains(e.target)) { closeToolsMenuSubjects(); }
+        }, true);
+
+        // ---- Font Size ----
         function applyFontSize(pct) {
             pct = parseInt(pct);
-            const sizePx = (16 * pct / 100).toFixed(2) + 'px';
-            // line-height: 70%→1.7 থেকে 200%→2.2 পর্যন্ত smooth scale
-            const lh = Math.max(1.2, Math.min(2.5, 1.4 + (pct - 100) / 400)).toFixed(2);
-            document.documentElement.style.setProperty('--reader-font-size', sizePx);
-            document.documentElement.style.setProperty('--reader-line-height', lh);
-            const label = document.getElementById('font-size-label');
-            if (label) label.textContent = pct + '%';
-            const slider = document.getElementById('font-size-slider');
-            if (slider) slider.value = pct;
+            document.documentElement.style.setProperty('--reader-font-size', (16 * pct / 100).toFixed(2) + 'px');
+            document.documentElement.style.setProperty('--reader-line-height', Math.max(1.2, Math.min(2.5, 1.4 + (pct - 100) / 400)).toFixed(2));
+            ['font-size-label','font-size-label-sub'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = pct + '%'; });
+            ['font-size-slider','font-size-slider-sub'].forEach(id => { const el = document.getElementById(id); if (el) el.value = pct; });
             localStorage.setItem('readerFontSizePct', pct);
+            if (bookMode) buildBookPages();
+        }
+        function initFontSize() { applyFontSize(parseInt(localStorage.getItem('readerFontSizePct') || '100')); }
+
+        // ===== BOOK VIEW =====
+        let bookMode = false;
+        let bookPages = [];
+        let bookCurrentSpread = 0;
+        let bookTotalSpreads = 0;
+        let _bookTouchX = null;
+
+        function toggleBookView() {
+            bookMode = !bookMode;
+            const btn      = document.getElementById('btn-book-view');
+            const normal   = document.getElementById('render-markdown');
+            const bookView = document.getElementById('book-view-container');
+            const tabText  = document.getElementById('tab-content-text');
+            if (bookMode) {
+                btn.style.background = 'rgba(217,119,6,0.15)';
+                btn.style.color = '#b45309';
+                normal.style.display = 'none';
+                bookView.style.display = 'flex';
+                bookView.style.flexDirection = 'column';
+                tabText.style.display = 'flex';
+                tabText.style.flexDirection = 'column';
+                _bookDark();
+                setTimeout(buildBookPages, 80);
+                lucide.createIcons();
+            } else {
+                btn.style.background = '';
+                btn.style.color = '';
+                bookView.style.display = 'none';
+                normal.style.display = '';
+                tabText.style.display = '';
+            }
         }
 
-        function initFontSize() {
-            const saved = parseInt(localStorage.getItem('readerFontSizePct') || '100');
-            applyFontSize(saved);
+        function _bookDark() {
+            const dark = document.documentElement.classList.contains('dark');
+            document.getElementById('book-view-container').style.background = dark ? '#1a1828' : '#ddd8cc';
+            ['book-page-L','book-page-R'].forEach(id => { const e=document.getElementById(id); if(e) e.style.background=dark?'#1c1a2e':'#fdf8f0'; });
+            const sp=document.getElementById('book-spine');
+            if(sp) sp.style.background=dark?'linear-gradient(to right,#0c0b18,#1e1c38,#0c0b18)':'linear-gradient(to right,#b0a090,#e2d8c8,#b0a090)';
+            const tc=dark?'#cdc8c0':'#2c2c2c', mc=dark?'#6a6a9a':'#9c8e7e';
+            ['book-canvas-L','book-canvas-R'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.color=tc;});
+            ['book-header-L','book-header-R','book-num-L','book-num-R','book-counter'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.color=mc;});
         }
+
+        function buildBookPages() {
+            const src = document.getElementById('render-markdown');
+            if (!src || !src.innerHTML.trim()) return;
+            const isMobile = window.innerWidth < 680;
+            document.getElementById('book-page-L').style.display = isMobile ? 'none' : 'flex';
+            document.getElementById('book-spine').style.display  = isMobile ? 'none' : 'block';
+
+            const cvR = document.getElementById('book-canvas-R');
+            void cvR.offsetHeight;
+            const pgH = cvR.offsetHeight;
+            const pgW = cvR.offsetWidth;
+            if (!pgH || !pgW) { setTimeout(buildBookPages, 120); return; }
+
+            // off-screen probe দিয়ে প্রতিটি element এর height মাপো
+            const probe = document.createElement('div');
+            const cs = getComputedStyle(cvR);
+            probe.style.cssText = `position:fixed;top:-99999px;left:0;visibility:hidden;pointer-events:none;width:${pgW}px;font-size:${cs.fontSize};line-height:${cs.lineHeight};font-family:${cs.fontFamily};padding:0;margin:0;box-sizing:border-box;overflow:visible;`;
+            document.body.appendChild(probe);
+
+            const children = Array.from(src.children);
+            const heights = children.map(node => {
+                const cl = node.cloneNode(true);
+                probe.appendChild(cl);
+                const h = cl.offsetHeight;
+                probe.removeChild(cl);
+                return h;
+            });
+            document.body.removeChild(probe);
+
+            // paginate
+            bookPages = [];
+            let pageNodes = [], usedH = 0;
+            const limit = pgH * 0.95;
+
+            children.forEach((node, i) => {
+                const h = heights[i] || 0;
+                if (h > limit) {
+                    if (pageNodes.length) { bookPages.push([...pageNodes]); pageNodes=[]; usedH=0; }
+                    bookPages.push([node.cloneNode(true)]);
+                } else if (usedH + h > limit && pageNodes.length > 0) {
+                    bookPages.push([...pageNodes]);
+                    pageNodes=[node.cloneNode(true)]; usedH=h;
+                } else {
+                    pageNodes.push(node.cloneNode(true)); usedH+=h;
+                }
+            });
+            if (pageNodes.length) bookPages.push(pageNodes);
+            if (!bookPages.length) bookPages.push([]);
+
+            bookCurrentSpread = 0;
+            bookTotalSpreads = Math.ceil(bookPages.length / (isMobile ? 1 : 2));
+            renderBookSpread();
+        }
+
+        function _putPage(cvId, hId, nId, idx) {
+            const cv=document.getElementById(cvId), head=document.getElementById(hId), num=document.getElementById(nId);
+            const name=document.getElementById('chapter-title')?.textContent||'';
+            if(head) head.textContent=name;
+            cv.innerHTML='';
+            if(idx>=0 && idx<bookPages.length){
+                bookPages[idx].forEach(n=>cv.appendChild(n.cloneNode(true)));
+                if(num) num.textContent=idx+1;
+            } else { if(num) num.textContent=''; if(head) head.textContent=''; }
+        }
+
+        function renderBookSpread(dir) {
+            const isMobile = window.innerWidth < 680;
+            const li = bookCurrentSpread*(isMobile?1:2);
+            const ri = li+(isMobile?0:1);
+            if(!isMobile) _putPage('book-canvas-L','book-header-L','book-num-L',li);
+            _putPage('book-canvas-R','book-header-R','book-num-R',isMobile?li:ri);
+            const ctr=document.getElementById('book-counter');
+            if(ctr) ctr.textContent=`${bookCurrentSpread+1} / ${bookTotalSpreads}`;
+            const prev=document.getElementById('book-btn-prev'), next=document.getElementById('book-btn-next');
+            if(prev) prev.style.opacity=bookCurrentSpread>0?'1':'0.35';
+            if(next) next.style.opacity=bookCurrentSpread<bookTotalSpreads-1?'1':'0.35';
+            if(dir){
+                const ids=isMobile?['book-canvas-R']:['book-canvas-L','book-canvas-R'];
+                ids.forEach(id=>{
+                    const el=document.getElementById(id); if(!el)return;
+                    el.style.transition='none'; el.style.opacity='0';
+                    el.style.transform=dir==='next'?'translateX(10px)':'translateX(-10px)';
+                    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+                        el.style.transition='opacity 0.2s ease,transform 0.2s ease';
+                        el.style.opacity='1'; el.style.transform='none';
+                    }));
+                });
+            }
+        }
+
+        function bookNext(){if(bookCurrentSpread<bookTotalSpreads-1){bookCurrentSpread++;renderBookSpread('next');}}
+        function bookPrev(){if(bookCurrentSpread>0){bookCurrentSpread--;renderBookSpread('prev');}}
+
+        document.addEventListener('keydown',e=>{if(!bookMode)return;if(e.key==='ArrowRight')bookNext();if(e.key==='ArrowLeft')bookPrev();});
+        document.addEventListener('touchstart',e=>{if(!bookMode)return;_bookTouchX=e.touches[0].clientX;},{passive:true});
+        document.addEventListener('touchend',e=>{
+            if(!bookMode||_bookTouchX===null)return;
+            const d=_bookTouchX-e.changedTouches[0].clientX;
+            if(Math.abs(d)>45){d>0?bookNext():bookPrev();}
+            _bookTouchX=null;
+        },{passive:true});
+        window.addEventListener('resize',()=>{if(!bookMode)return;setTimeout(buildBookPages,200);});
+
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); lucide.createIcons(); }
         function checkTheme() { if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); initFontSize(); }
 
         function toggleEditMode() {
@@ -3620,96 +3888,7 @@
                 if (restoreBtn) restoreBtn.style.display = 'none';
             }
         }
-        // ---- Reader page tools menu ----
-        let _toolsMenuOpen = false;
-        function closeToolsMenu() {
-            const p = document.getElementById('tools-menu-panel');
-            if (p) p.style.display = 'none';
-            _toolsMenuOpen = false;
-        }
-        function toggleToolsMenu() {
-            const p = document.getElementById('tools-menu-panel');
-            const btn = document.getElementById('tools-menu-btn');
-            if (!p || !btn) return;
-            if (_toolsMenuOpen) {
-                p.style.display = 'none';
-                _toolsMenuOpen = false;
-            } else {
-                const r = btn.getBoundingClientRect();
-                p.style.top = (r.bottom + 4) + 'px';
-                p.style.right = (window.innerWidth - r.right) + 'px';
-                p.style.left = 'auto';
-                p.style.display = 'block';
-                _toolsMenuOpen = true;
-            }
-        }
-        document.addEventListener('click', function(e) {
-            const w1 = document.getElementById('tools-menu-wrapper');
-            const p = document.getElementById('tools-menu-panel');
-            if (p && w1 && !w1.contains(e.target) && !p.contains(e.target)) {
-                p.style.display = 'none';
-                _toolsMenuOpen = false;
-            }
-        }, true);
-
-        // ---- Add button dropdown (subjects page) ----
-        let _addMenuOpen = false;
-        function closeAddMenu() {
-            const p = document.getElementById('add-menu-panel');
-            if (p) p.style.display = 'none';
-            _addMenuOpen = false;
-        }
-        function toggleAddMenu() {
-            const p = document.getElementById('add-menu-panel');
-            if (!p) return;
-            if (_addMenuOpen) {
-                p.style.display = 'none';
-                _addMenuOpen = false;
-            } else {
-                p.style.display = 'block';
-                _addMenuOpen = true;
-            }
-        }
-        document.addEventListener('click', function(e) {
-            const w = document.getElementById('add-btn-wrapper');
-            const p = document.getElementById('add-menu-panel');
-            if (p && w && !w.contains(e.target)) {
-                p.style.display = 'none';
-                _addMenuOpen = false;
-            }
-        }, true);
-
-        // ---- Subjects page tools menu ----
-        let _toolsMenuSubjectsOpen = false;
-        function closeToolsMenuSubjects() {
-            const p = document.getElementById('tools-menu-panel-subjects');
-            if (p) p.style.display = 'none';
-            _toolsMenuSubjectsOpen = false;
-        }
-        function toggleToolsMenuSubjects() {
-            const p = document.getElementById('tools-menu-panel-subjects');
-            const btn = document.querySelector('#tools-menu-wrapper-subjects button');
-            if (!p || !btn) return;
-            if (_toolsMenuSubjectsOpen) {
-                p.style.display = 'none';
-                _toolsMenuSubjectsOpen = false;
-            } else {
-                const r = btn.getBoundingClientRect();
-                p.style.top = (r.bottom + 4) + 'px';
-                p.style.right = (window.innerWidth - r.right) + 'px';
-                p.style.left = 'auto';
-                p.style.display = 'block';
-                _toolsMenuSubjectsOpen = true;
-            }
-        }
-        document.addEventListener('click', function(e) {
-            const w2 = document.getElementById('tools-menu-wrapper-subjects');
-            const p = document.getElementById('tools-menu-panel-subjects');
-            if (p && w2 && !w2.contains(e.target) && !p.contains(e.target)) {
-                p.style.display = 'none';
-                _toolsMenuSubjectsOpen = false;
-            }
-        }, true);
+        // tools menus handled above
         function confirmReset() { openConfirmModal("সতর্কতা: সব ডাটা রিসেট হবে এবং ডিফল্ট লোড হবে।", resetData); }
         
         function openBulkImportSubjectModal(isChapter = false) { 
