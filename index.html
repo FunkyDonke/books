@@ -2931,10 +2931,10 @@
             const panels = document.getElementById('reader-panels');
             sidebar.style.transition = 'none'; // suppress during restore
             if (window.innerWidth < 1024) {
-                // Mobile: always start with sidebar hidden (off-screen left)
-                sidebar.classList.add('-translate-x-full');
-                sidebar.classList.remove('flex');
-                if (overlay) overlay.classList.add('hidden');
+                // Mobile: auto-open sidebar so user can pick a topic
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('flex');
+                if (overlay) overlay.classList.remove('hidden');
             } else {
                 // Desktop: restore last state
                 if (sessionStorage.getItem('sidebarHidden')) {
