@@ -402,6 +402,12 @@
                                         <!-- Per-tab action buttons: icon-only on mobile -->
                                         <div class="flex-shrink-0 flex items-center gap-0.5 px-2 border-l border-gray-100 dark:border-gray-800">
                                             <div id="tab-actions-text" style="display:none" class="hidden items-center gap-0.5">
+                                                <!-- Font Size Control -->
+                                                <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 mr-1">
+                                                    <button onclick="changeFontSize(-1)" class="w-6 h-6 flex items-center justify-center rounded text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600 transition font-bold text-sm" title="ছোট করুন">A-</button>
+                                                    <span id="font-size-label" class="text-xs text-gray-500 dark:text-gray-400 px-1 min-w-[28px] text-center">মাঝ</span>
+                                                    <button onclick="changeFontSize(1)" class="w-6 h-6 flex items-center justify-center rounded text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600 transition font-bold text-sm" title="বড় করুন">A+</button>
+                                                </div>
                                                 <button onclick="openAddTextLinkModal()" class="text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-700 p-1.5 md:px-2.5 md:py-1.5 rounded-lg flex items-center gap-1 transition" title="ক্লাউড লিংক">
                                                     <i data-lucide="cloud" class="h-3.5 w-3.5 flex-shrink-0"></i>
                                                     <span class="hidden md:inline text-xs">ক্লাউড লিংক</span>
@@ -458,7 +464,7 @@
                                     <div id="loading-indicator" class="hidden flex justify-center items-center py-10">
                                         <i data-lucide="loader-2" class="animate-spin h-8 w-8 text-indigo-600"></i>
                                     </div>
-                                    <div id="render-markdown" class="prose dark:prose-invert max-w-none p-6 md:p-10"></div>
+                                    <div id="render-markdown" class="prose dark:prose-invert max-w-none p-6 md:p-10" style="font-size: var(--reader-font-size, 1rem); line-height: var(--reader-line-height, 1.8);"></div>
                                     <div id="empty-text-msg" class="hidden flex-grow flex flex-col items-center justify-center text-gray-400">
                                         <i data-lucide="file-text" class="h-10 w-10 mb-2 opacity-30"></i>
                                         <p>কোন টেক্সট নেই</p>
@@ -3536,7 +3542,31 @@
         }
 
         function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); lucide.createIcons(); }
-        function checkTheme() { if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); }
+
+        // ---- Font Size Control ----
+        const FONT_SIZES = [
+            { size: '0.85rem', lineHeight: '1.7', label: 'ছোট' },
+            { size: '1rem',    lineHeight: '1.8', label: 'মাঝ' },
+            { size: '1.15rem', lineHeight: '1.9', label: 'বড়' },
+            { size: '1.3rem',  lineHeight: '2.0', label: 'বড়+' },
+            { size: '1.5rem',  lineHeight: '2.1', label: 'বিশাল' },
+        ];
+        let currentFontSizeIdx = parseInt(localStorage.getItem('readerFontSizeIdx') || '1');
+
+        function applyFontSize() {
+            const fs = FONT_SIZES[currentFontSizeIdx];
+            document.documentElement.style.setProperty('--reader-font-size', fs.size);
+            document.documentElement.style.setProperty('--reader-line-height', fs.lineHeight);
+            const label = document.getElementById('font-size-label');
+            if (label) label.textContent = fs.label;
+            localStorage.setItem('readerFontSizeIdx', currentFontSizeIdx);
+        }
+
+        function changeFontSize(delta) {
+            currentFontSizeIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, currentFontSizeIdx + delta));
+            applyFontSize();
+        }
+        function checkTheme() { if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); applyFontSize(); }
 
         function toggleEditMode() {
             isEditMode = !isEditMode; selectedIds.clear(); updateEditModeUI();
@@ -4963,4 +4993,4 @@
         }
     </script>
 </body>
-</html>
+</html>ঠ
