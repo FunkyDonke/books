@@ -403,10 +403,14 @@
                                         <div class="flex-shrink-0 flex items-center gap-0.5 px-2 border-l border-gray-100 dark:border-gray-800">
                                             <div id="tab-actions-text" style="display:none" class="hidden items-center gap-0.5">
                                                 <!-- Font Size Control -->
-                                                <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 mr-1">
-                                                    <button onclick="changeFontSize(-1)" class="w-6 h-6 flex items-center justify-center rounded text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600 transition font-bold text-sm" title="ছোট করুন">A-</button>
-                                                    <span id="font-size-label" class="text-xs text-gray-500 dark:text-gray-400 px-1 min-w-[28px] text-center">মাঝ</span>
-                                                    <button onclick="changeFontSize(1)" class="w-6 h-6 flex items-center justify-center rounded text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600 transition font-bold text-sm" title="বড় করুন">A+</button>
+                                                <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg px-2 py-1 mr-1">
+                                                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400 select-none" style="font-size:10px">A</span>
+                                                    <input type="range" id="font-size-slider" min="10" max="200" step="1" value="100"
+                                                        oninput="applyFontSize(this.value)"
+                                                        class="w-16 md:w-24 h-1.5 rounded-full appearance-none cursor-pointer accent-indigo-600"
+                                                        title="ফন্ট সাইজ পরিবর্তন করুন">
+                                                    <span class="text-sm font-bold text-gray-500 dark:text-gray-400 select-none">A</span>
+                                                    <span id="font-size-label" class="text-xs text-indigo-600 dark:text-indigo-400 min-w-[30px] text-center font-medium">100%</span>
                                                 </div>
                                                 <button onclick="openAddTextLinkModal()" class="text-purple-600 hover:bg-purple-50 dark:hover:bg-gray-700 p-1.5 md:px-2.5 md:py-1.5 rounded-lg flex items-center gap-1 transition" title="ক্লাউড লিংক">
                                                     <i data-lucide="cloud" class="h-3.5 w-3.5 flex-shrink-0"></i>
@@ -3544,29 +3548,25 @@
         function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); lucide.createIcons(); }
 
         // ---- Font Size Control ----
-        const FONT_SIZES = [
-            { size: '0.85rem', lineHeight: '1.7', label: 'ছোট' },
-            { size: '1rem',    lineHeight: '1.8', label: 'মাঝ' },
-            { size: '1.15rem', lineHeight: '1.9', label: 'বড়' },
-            { size: '1.3rem',  lineHeight: '2.0', label: 'বড়+' },
-            { size: '1.5rem',  lineHeight: '2.1', label: 'বিশাল' },
-        ];
-        let currentFontSizeIdx = parseInt(localStorage.getItem('readerFontSizeIdx') || '1');
-
-        function applyFontSize() {
-            const fs = FONT_SIZES[currentFontSizeIdx];
-            document.documentElement.style.setProperty('--reader-font-size', fs.size);
-            document.documentElement.style.setProperty('--reader-line-height', fs.lineHeight);
+        function applyFontSize(pct) {
+            pct = parseInt(pct);
+            const sizePx = (16 * pct / 100).toFixed(2) + 'px';
+            // line-height: 70%→1.7 থেকে 200%→2.2 পর্যন্ত smooth scale
+            const lh = Math.max(1.2, Math.min(2.5, 1.4 + (pct - 100) / 400)).toFixed(2);
+            document.documentElement.style.setProperty('--reader-font-size', sizePx);
+            document.documentElement.style.setProperty('--reader-line-height', lh);
             const label = document.getElementById('font-size-label');
-            if (label) label.textContent = fs.label;
-            localStorage.setItem('readerFontSizeIdx', currentFontSizeIdx);
+            if (label) label.textContent = pct + '%';
+            const slider = document.getElementById('font-size-slider');
+            if (slider) slider.value = pct;
+            localStorage.setItem('readerFontSizePct', pct);
         }
 
-        function changeFontSize(delta) {
-            currentFontSizeIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, currentFontSizeIdx + delta));
-            applyFontSize();
+        function initFontSize() {
+            const saved = parseInt(localStorage.getItem('readerFontSizePct') || '100');
+            applyFontSize(saved);
         }
-        function checkTheme() { if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); applyFontSize(); }
+        function checkTheme() { if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); initFontSize(); }
 
         function toggleEditMode() {
             isEditMode = !isEditMode; selectedIds.clear(); updateEditModeUI();
@@ -4993,4 +4993,4 @@
         }
     </script>
 </body>
-</html>ঠ
+</html>
