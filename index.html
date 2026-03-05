@@ -621,6 +621,20 @@
                                         </button>
                                         <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
                                     </div>
+                                    <!-- System -->
+                                    <button onclick="closeToolsMenu();document.getElementById('restore-file-input').click();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="upload-cloud" class="h-4 w-4"></i> রিস্টোর ডাটা
+                                    </button>
+                                    <button onclick="closeToolsMenu();confirmReset();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="rotate-ccw" class="h-4 w-4"></i> রিসেট
+                                    </button>
+                                    <button onclick="closeToolsMenu();exportData();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="download" class="h-4 w-4"></i> ব্যাকআপ
+                                    </button>
+                                    <button onclick="closeToolsMenu();openStatsModal();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-purple-600 dark:text-purple-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="bar-chart-3" class="h-4 w-4"></i> পরিসংখ্যান
+                                    </button>
+                                    <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
                                     <button onclick="closeToolsMenu();toggleTheme();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
                                         <i data-lucide="moon" id="theme-icon" class="h-4 w-4"></i> লাইট/ডার্ক
                                     </button>
@@ -4348,6 +4362,7 @@
                 clearInterval(_mcqTimer);
                 _mcqTimer = null;
             }
+            if (id === 'modal-mcq') stopPopupTimer();
             document.getElementById(id).classList.add('opacity-0', 'pointer-events-none'); 
             document.body.classList.remove('modal-active'); 
         }
@@ -6238,16 +6253,49 @@ answer = সঠিক বিকল্পের index (0-3)`;
             body.innerHTML = '<p class="text-center py-8 text-gray-400">কোনো প্রশ্ন তৈরি হয়নি।</p>';
             return;
         }
+        const total = mcqQuestions.length;
+        // ── Start screen ──
         body.innerHTML = `
-            <div class="mb-3 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900 py-2 z-10">
-                <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">${mcqQuestions.length}টি প্রশ্ন</span>
-                <div class="flex items-center gap-2">
-                    <span id="mcq-score-badge" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">স্কোর: ০/${mcqQuestions.length}</span>
-                    <button onclick="openMCQModal()" class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500 hover:bg-gray-200 transition">নতুন কুইজ</button>
+            <div class="flex flex-col items-center justify-center py-10 px-6 gap-4 text-center">
+                <div class="text-5xl">🧠</div>
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">${total}টি MCQ প্রশ্ন প্রস্তুত!</h3>
+                <div class="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <span>📝 ${total}টি প্রশ্ন</span>
+                    <span>⏱️ ${total} মিনিট</span>
                 </div>
-            </div>
-            <div class="space-y-5" id="mcq-questions-list"></div>`;
+                <p class="text-xs text-gray-400">প্রতিটি প্রশ্নের জন্য ১ মিনিট বরাদ্দ।</p>
+                <button onclick="startPopupMCQTest()"
+                    class="mt-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl text-base transition shadow-lg">
+                    ▶ শুরু করুন
+                </button>
+                <button onclick="closeModal('modal-mcq')" class="text-xs text-gray-400 hover:text-red-500 transition">বাতিল করুন</button>
+            </div>`;
+    }
 
+    let _popupTimer = null;
+
+    function startPopupMCQTest() {
+        mcqAnswered = 0; mcqScore = 0;
+        const total = mcqQuestions.length;
+        let secsLeft = total * 60;
+        const body = document.getElementById('mcq-modal-body');
+        const timerBar = document.getElementById('mcq-timer-bar');
+
+        // Show timer bar
+        if (timerBar) {
+            timerBar.classList.remove('hidden');
+            timerBar.innerHTML = `
+                <div class="px-4 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+                    <span id="popup-mcq-score-badge" class="text-sm font-bold text-indigo-600 dark:text-indigo-400">স্কোর: ০/${total}</span>
+                    <div id="popup-timer-pill" class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                        <span>⏱️</span>
+                        <span id="popup-timer-display" class="text-sm font-bold font-mono text-amber-600 dark:text-amber-400"></span>
+                    </div>
+                    <button onclick="openMCQModal()" class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500 hover:bg-gray-200 transition">নতুন কুইজ</button>
+                </div>`;
+        }
+
+        body.innerHTML = `<div class="space-y-5" id="mcq-questions-list"></div>`;
         const list = document.getElementById('mcq-questions-list');
         mcqQuestions.forEach((q, qi) => {
             const div = document.createElement('div');
@@ -6263,7 +6311,65 @@ answer = সঠিক বিকল্পের index (0-3)`;
                 <div id="mcq-explain-${qi}" class="hidden mt-2 p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300 leading-relaxed"></div>`;
             list.appendChild(div);
         });
+
+        // Start timer
+        if (_popupTimer) clearInterval(_popupTimer);
+        const updateTimer = () => {
+            const m = Math.floor(secsLeft/60), s = secsLeft % 60;
+            const el = document.getElementById('popup-timer-display');
+            const pill = document.getElementById('popup-timer-pill');
+            if (el) el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            if (pill) {
+                const red = secsLeft <= 30;
+                pill.className = `flex items-center gap-1.5 px-3 py-1 rounded-lg border ${red ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'}`;
+                if (el) el.className = `text-sm font-bold font-mono ${red ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`;
+            }
+        };
+        updateTimer();
+        _popupTimer = setInterval(() => {
+            secsLeft--;
+            updateTimer();
+            if (secsLeft <= 0) {
+                clearInterval(_popupTimer);
+                _popupTimer = null;
+                popupTimeUp();
+            }
+        }, 1000);
+
         lucide.createIcons();
+    }
+
+    function stopPopupTimer() {
+        if (_popupTimer) { clearInterval(_popupTimer); _popupTimer = null; }
+    }
+
+    function popupTimeUp() {
+        mcqQuestions.forEach((q, qi) => {
+            const optsEl = document.getElementById(`mcq-opts-${qi}`);
+            if (optsEl && !optsEl.dataset.answered) {
+                optsEl.dataset.answered = 'timeout';
+                optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
+                    el.style.pointerEvents = 'none';
+                    if (i === q.answer) { el.style.borderColor='#16a34a'; el.style.background='#dcfce7'; }
+                });
+                const exp = document.getElementById(`mcq-explain-${qi}`);
+                if (exp && q.explain) { exp.textContent = '💡 ' + q.explain; exp.classList.remove('hidden'); }
+            }
+        });
+        const list = document.getElementById('mcq-questions-list');
+        if (list) {
+            const total = mcqQuestions.length;
+            const pct = Math.round((mcqScore/total)*100);
+            const res = document.createElement('div');
+            res.className = 'mt-4 p-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 rounded-2xl text-center border border-red-200 dark:border-red-800';
+            res.innerHTML = `<div class="text-3xl mb-1">⏰</div>
+                <div class="text-lg font-black text-red-600 dark:text-red-400">সময় শেষ!</div>
+                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 mt-1">${mcqScore}<span class="text-sm font-normal">/${total}</span></div>
+                <div class="text-xs text-gray-500 mt-1">${pct}% সঠিক</div>
+                <button onclick="openMCQModal()" class="mt-3 px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl font-bold hover:bg-indigo-700 transition">নতুন কুইজ</button>`;
+            list.insertBefore(res, list.firstChild);
+            res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
     }
 
     function selectMCQOption(qi, selectedIdx) {
@@ -6651,86 +6757,83 @@ answer = সঠিক বিকল্পের index (0-3)`;
         }
     }
 
-    function openQnaMCQSourceEditor() {
-        // Reuse the existing source editor modal
-        const original = (currentChapterNode?.content?.text || '').trim();
-        const current = _qnaMCQCustomSource !== null ? _qnaMCQCustomSource : original;
-        const ta = document.getElementById('source-editor-textarea');
-        if (ta) {
-            ta.value = current;
-            ta.oninput = () => {
-                const h = document.getElementById('source-editor-token-hint');
-                if (h) h.textContent = `~${Math.round(ta.value.length/3.5)} token`;
-            };
-            ta.oninput();
-        }
-        // Override apply button to save to qna custom source
-        const applyBtn = document.querySelector('#modal-source-editor button[onclick="applySourceEdit()"]');
-        if (applyBtn) applyBtn.onclick = applyQnaMCQSourceEdit;
-        lucide.createIcons();
-        openModal('modal-source-editor');
-    }
-
-    function applyQnaMCQSourceEdit() {
-        const ta = document.getElementById('source-editor-textarea');
-        if (!ta) return;
-        _qnaMCQCustomSource = ta.value.trim();
-        // Restore original apply button
-        const applyBtn = document.querySelector('#modal-source-editor button');
-        if (applyBtn) applyBtn.onclick = applySourceEdit;
-        closeSourceEditor();
-        updateQnaMCQSrcHint();
-        const editBtn = document.getElementById('qna-mcq-edit-src-btn');
-        if (editBtn) editBtn.classList.remove('hidden');
-    }
-
     async function generateMCQFromQna(count) {
         const apiKey = getAIApiKey();
         if (!apiKey) { alert('AI টিউটর ট্যাবে API Key দিন।'); return; }
         const srcText = _qnaMCQCustomSource !== null
             ? _qnaMCQCustomSource
-            : (currentChapterNode?.content?.text || '').trim();
-        if (!srcText) { alert('MCQ তৈরির জন্য সোর্স টেক্সট দরকার।'); return; }
+            : (currentChapterNode?.content?.text || '').substring(0, 3000);
+        if (!srcText.trim()) { alert('MCQ তৈরির জন্য সোর্স টেক্সট দরকার।'); return; }
 
-        // Show loading inline
         const resultEl = document.getElementById('qna-mcq-result');
         resultEl.classList.remove('hidden');
-        resultEl.innerHTML = `<div class="flex items-center gap-2 p-4 text-sm text-gray-500 dark:text-gray-400">
-            <i data-lucide="loader" class="h-4 w-4 animate-spin"></i> ${count}টি MCQ তৈরি হচ্ছে…</div>`;
-        lucide.createIcons();
+        const provEmoji = AI_PROVIDERS[aiProvider]?.emoji || '';
+        resultEl.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-3">
+            <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">${provEmoji} ${count}টি MCQ তৈরি হচ্ছে…</p>
+        </div>`;
         resultEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
-        const prov = AI_PROVIDERS[aiProvider];
         const prompt = `তুমি একজন অভিজ্ঞ শিক্ষক। নিচের তথ্য থেকে ঠিক ${count}টি MCQ প্রশ্ন তৈরি করো।
-প্রতিটি প্রশ্নে ৪টি অপশন (ক, খ, গ, ঘ) থাকবে। শুধুমাত্র JSON ফরম্যাটে উত্তর দাও।
-{"questions":[{"q":"প্রশ্ন","options":["ক) ...","খ) ...","গ) ...","ঘ) ..."],"answer":0,"explain":"সংক্ষিপ্ত ব্যাখ্যা"}]}
-answer হলো সঠিক অপশনের index (0-3)।
+বিষয়: ${currentSubject?.name || 'অজানা'}
+অধ্যায়: ${currentChapterNode?.title || ''}
+${srcText ? 'বিষয়বস্তু:\n' + srcText : '(সাধারণ জ্ঞান থেকে প্রশ্ন করো)'}
 
-তথ্য:
-${srcText.substring(0, 4000)}`;
+শুধুমাত্র নিচের JSON ফরম্যাটে উত্তর দাও, অন্য কিছু লিখবে না:
+{"questions":[{"q":"প্রশ্ন","options":["ক) বিকল্প১","খ) বিকল্প২","গ) বিকল্প৩","ঘ) বিকল্প৪"],"answer":0,"explain":"ব্যাখ্যা"}]}
+answer = সঠিক বিকল্পের index (0-3)`;
 
         try {
+            const prov  = AI_PROVIDERS[aiProvider];
+            const model = aiModel || prov.models[0].id;
             let raw = '';
+
             if (aiProvider === 'gemini') {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel || prov.models[0].id}:generateContent?key=${apiKey}`;
-                const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:4000} }) });
-                const d = await res.json();
-                raw = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                const res = await fetch(url, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        generationConfig: { maxOutputTokens: 4096, temperature: 0.4,
+                            response_mime_type: 'application/json' }
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error?.message || 'Gemini Error ' + res.status);
+                raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
             } else {
-                const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body: JSON.stringify({ model: aiModel || prov.models[0].id, messages:[{role:'user',content:prompt}], temperature:0.7, max_tokens:4000 }) });
-                const d = await res.json();
-                raw = d.choices?.[0]?.message?.content || '';
+                const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: 'user', content: prompt }],
+                        max_tokens: 4096, temperature: 0.4,
+                        response_format: { type: 'json_object' }
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error?.message || 'Groq Error ' + res.status);
+                raw = data.choices?.[0]?.message?.content || '{}';
             }
-            const clean = raw.replace(/```json|```/g,'').trim();
-            const parsed = JSON.parse(clean);
+
+            raw = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+            const jsonMatch = raw.match(/\{[\s\S]*\}/);
+            if (jsonMatch) raw = jsonMatch[0];
+            const parsed = JSON.parse(raw);
             const qs = Array.isArray(parsed.questions) ? parsed.questions : [];
-            if (!qs.length) throw new Error('কোনো প্রশ্ন তৈরি হয়নি।');
+            if (!qs.length) throw new Error('AI কোনো প্রশ্ন তৈরি করেনি। আবার চেষ্টা করুন।');
 
             saveQuizToHistory(qs, currentChapterNode?.title, currentSubject?.name);
             renderInlineMCQ(qs, resultEl);
             renderQnaMCQHistory();
         } catch(err) {
-            resultEl.innerHTML = `<div class="p-4 text-sm text-red-500">❌ ${err.message}</div>`;
+            resultEl.innerHTML = `<div class="flex flex-col items-center py-8 gap-3">
+                <div class="text-3xl">❌</div>
+                <p class="text-sm text-red-500 text-center px-4">${err.message || 'প্রশ্ন তৈরিতে সমস্যা হয়েছে।'}</p>
+                <button onclick="document.getElementById('qna-mcq-result').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 transition">বন্ধ করুন</button>
+            </div>`;
+            lucide.createIcons();
         }
     }
 
@@ -6745,18 +6848,50 @@ ${srcText.substring(0, 4000)}`;
         _inlineScore = 0;
         _inlineAnswered = 0;
         const total = questions.length;
+        const totalSec = total * 60;
 
+        // ── Start screen ──
         container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-10 px-6 gap-4 text-center">
+                <div class="text-5xl">🧠</div>
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">${total}টি MCQ প্রশ্ন প্রস্তুত!</h3>
+                <div class="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <span>📝 ${total}টি প্রশ্ন</span>
+                    <span>⏱️ ${total} মিনিট</span>
+                </div>
+                <p class="text-xs text-gray-400">প্রতিটি প্রশ্নের জন্য ১ মিনিট বরাদ্দ। টেস্ট শুরু হলে সময় গণনা শুরু হবে।</p>
+                <button onclick="startInlineMCQTest(${JSON.stringify(questions).replace(/"/g,'&quot;')})"
+                    class="mt-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl text-base transition shadow-lg">
+                    ▶ শুরু করুন
+                </button>
+                <button onclick="document.getElementById('qna-mcq-result').classList.add('hidden')" class="text-xs text-gray-400 hover:text-red-500 transition">বাতিল করুন</button>
+            </div>`;
+    }
+
+    let _inlineTimer = null;
+
+    function startInlineMCQTest(questions) {
+        _inlineScore = 0;
+        _inlineAnswered = 0;
+        const total = questions.length;
+        let secsLeft = total * 60;
+        const resultEl = document.getElementById('qna-mcq-result');
+
+        resultEl.innerHTML = `
             <div class="px-4 pt-3 pb-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
                 <span class="text-xs font-bold text-green-600 dark:text-green-400">🧠 ${total}টি MCQ</span>
                 <div class="flex items-center gap-2">
                     <span id="inline-mcq-score" class="text-xs font-bold text-indigo-600 dark:text-indigo-400">স্কোর: ০/${total}</span>
-                    <button onclick="document.getElementById('qna-mcq-result').classList.add('hidden')" class="text-[10px] text-gray-400 hover:text-red-500 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition">✕ বন্ধ</button>
+                    <div id="inline-timer-pill" class="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                        <span>⏱️</span>
+                        <span id="inline-timer-display" class="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono"></span>
+                    </div>
+                    <button onclick="stopInlineTimer();document.getElementById('qna-mcq-result').classList.add('hidden')" class="text-[10px] text-gray-400 hover:text-red-500 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition">✕ বন্ধ</button>
                 </div>
             </div>
             <div class="p-4 space-y-4" id="inline-mcq-list"></div>`;
 
-        const list = container.querySelector('#inline-mcq-list');
+        const list = resultEl.querySelector('#inline-mcq-list');
         questions.forEach((q, qi) => {
             const div = document.createElement('div');
             div.className = 'p-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700';
@@ -6765,12 +6900,70 @@ ${srcText.substring(0, 4000)}`;
                 <div class="space-y-1.5" id="inline-opts-${qi}">
                     ${(q.options||[]).map((opt,oi)=>`
                     <div class="mcq-option px-3 py-2 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 border-2 border-gray-200 dark:border-gray-600 cursor-pointer select-none"
-                         onclick="selectInlineMCQ(${qi},${oi},${q.answer},'${(q.explain||'').replace(/'/g,"\\'")}',${total})">${opt}</div>`).join('')}
+                         onclick="selectInlineMCQ(${qi},${oi},${q.answer},'${(q.explain||'').replace(/'/g,"\\'").replace(/\n/g,' ')}',${total})">${opt}</div>`).join('')}
                 </div>
                 <div id="inline-explain-${qi}" class="hidden mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300"></div>`;
             list.appendChild(div);
         });
+
+        // Start timer
+        if (_inlineTimer) clearInterval(_inlineTimer);
+        const updateTimer = () => {
+            const m = Math.floor(secsLeft / 60), s = secsLeft % 60;
+            const el = document.getElementById('inline-timer-display');
+            const pill = document.getElementById('inline-timer-pill');
+            if (el) el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            if (pill) {
+                const red = secsLeft <= 30;
+                pill.className = `flex items-center gap-1 px-2 py-0.5 rounded-lg border ${red ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'}`;
+                if (el) el.className = `text-xs font-bold font-mono ${red ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`;
+            }
+        };
+        updateTimer();
+        _inlineTimer = setInterval(() => {
+            secsLeft--;
+            updateTimer();
+            if (secsLeft <= 0) {
+                clearInterval(_inlineTimer);
+                _inlineTimer = null;
+                inlineTimeUp(questions, total);
+            }
+        }, 1000);
+
         lucide.createIcons();
+        resultEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+
+    function stopInlineTimer() {
+        if (_inlineTimer) { clearInterval(_inlineTimer); _inlineTimer = null; }
+    }
+
+    function inlineTimeUp(questions, total) {
+        // Lock all unanswered
+        questions.forEach((q, qi) => {
+            const optsEl = document.getElementById(`inline-opts-${qi}`);
+            if (optsEl && !optsEl.dataset.answered) {
+                optsEl.dataset.answered = 'timeout';
+                optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
+                    el.style.pointerEvents = 'none';
+                    if (i === q.answer) { el.style.borderColor='#16a34a'; el.style.background='#dcfce7'; }
+                });
+                const exp = document.getElementById(`inline-explain-${qi}`);
+                if (exp && q.explain) { exp.textContent = '💡 ' + q.explain; exp.classList.remove('hidden'); }
+            }
+        });
+        const list = document.getElementById('inline-mcq-list');
+        if (list) {
+            const pct = Math.round((_inlineScore/total)*100);
+            const res = document.createElement('div');
+            res.className = 'mt-4 p-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 rounded-2xl text-center border border-red-200 dark:border-red-800';
+            res.innerHTML = `<div class="text-3xl mb-1">⏰</div>
+                <div class="text-lg font-black text-red-600 dark:text-red-400">সময় শেষ!</div>
+                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 mt-1">${_inlineScore}<span class="text-sm font-normal">/${total}</span></div>
+                <div class="text-xs text-gray-500 mt-1">${pct}% সঠিক</div>`;
+            list.insertBefore(res, list.firstChild);
+            res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
     }
 
     let _inlineScore = 0;
@@ -7414,12 +7607,28 @@ ${srcText.substring(0, 4000)}`;
     // ── Custom source override ──
     let _customSource = null; // null = use chapter text, string = user-edited
 
+    let _sourceEditorContext = 'ai'; // 'ai' or 'mcq'
+
     function openSourceEditor() {
+        _sourceEditorContext = 'ai';
         const original = (currentChapterNode?.content?.text || '').trim();
         const current = _customSource !== null ? _customSource : original;
+        _fillSourceEditor(current);
+        openModal('modal-source-editor');
+    }
+
+    function openQnaMCQSourceEditor() {
+        _sourceEditorContext = 'mcq';
+        const original = (currentChapterNode?.content?.text || '').trim();
+        const current = _qnaMCQCustomSource !== null ? _qnaMCQCustomSource : original;
+        _fillSourceEditor(current);
+        openModal('modal-source-editor');
+    }
+
+    function _fillSourceEditor(text) {
         const ta = document.getElementById('source-editor-textarea');
         if (ta) {
-            ta.value = current;
+            ta.value = text;
             ta.oninput = () => {
                 const hint = document.getElementById('source-editor-token-hint');
                 if (hint) hint.textContent = `~${Math.round(ta.value.length / 3.5)} token`;
@@ -7427,7 +7636,6 @@ ${srcText.substring(0, 4000)}`;
             ta.oninput();
         }
         lucide.createIcons();
-        openModal('modal-source-editor');
     }
 
     function closeSourceEditor() {
@@ -7437,17 +7645,31 @@ ${srcText.substring(0, 4000)}`;
     function applySourceEdit() {
         const ta = document.getElementById('source-editor-textarea');
         if (!ta) return;
-        _customSource = ta.value.trim();
-        closeSourceEditor();
-        updateAIModeUI();
+        const val = ta.value.trim();
+        if (_sourceEditorContext === 'mcq') {
+            _qnaMCQCustomSource = val;
+            closeSourceEditor();
+            updateQnaMCQSrcHint();
+            const editBtn = document.getElementById('qna-mcq-edit-src-btn');
+            if (editBtn) editBtn.classList.remove('hidden');
+        } else {
+            _customSource = val;
+            closeSourceEditor();
+            updateAIModeUI();
+        }
     }
 
     function resetSourceToOriginal() {
-        _customSource = null;
-        const ta = document.getElementById('source-editor-textarea');
         const original = (currentChapterNode?.content?.text || '').trim();
+        const ta = document.getElementById('source-editor-textarea');
         if (ta) { ta.value = original; ta.oninput && ta.oninput(); }
-        updateAIModeUI();
+        if (_sourceEditorContext === 'mcq') {
+            _qnaMCQCustomSource = null;
+            updateQnaMCQSrcHint();
+        } else {
+            _customSource = null;
+            updateAIModeUI();
+        }
     }
 
     function _getSourceBlock() {
