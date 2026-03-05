@@ -6987,9 +6987,6 @@ answer = সঠিক বিকল্পের index (0-3)`;
     };
 
     // ── Helpers ──
-    function getAIApiKey() {
-        return localStorage.getItem(AI_PROVIDERS[aiProvider]?.keyStorage || '') || '';
-    }
 
     function getAIChatStoreKey() {
         const chId = currentChapterNode?.id || 'global';
