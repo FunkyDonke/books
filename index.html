@@ -52,14 +52,18 @@
         .theme-purple  { --accent:#7c3aed; --accent-light:#f5f3ff; --accent-dark:#6d28d9; --accent-text:#7c3aed; }
         .tab-active { border-bottom-color: var(--accent) !important; color: var(--accent) !important; }
         .dark .tab-active { border-bottom-color: var(--accent) !important; color: var(--accent) !important; }
-        .compact-tab-btn.tab-active { color: var(--accent) !important; background-color: var(--accent-light) !important; }
+        .compact-tab-btn.tab-active { color: #eef2ff !important; background-color: var(--accent) !important; border: 1.5px solid var(--accent) !important; border-bottom: none !important; border-radius: 8px 8px 0 0 !important; }
         /* MCQ Modal */
         #modal-mcq .mcq-option { cursor:pointer; transition: all 0.2s; border:2px solid transparent; }
         #modal-mcq .mcq-option:hover { border-color: var(--accent); }
-        #modal-mcq .mcq-option.correct { background:#dcfce7 !important; border-color:#16a34a; }
-        #modal-mcq .mcq-option.wrong   { background:#fee2e2 !important; border-color:#dc2626; }
-        .dark #modal-mcq .mcq-option.correct { background:#14532d !important; border-color:#16a34a !important; }
-        .dark #modal-mcq .mcq-option.wrong   { background:#7f1d1d !important; border-color:#dc2626 !important; }
+        #modal-mcq .mcq-option.correct { background:#16a34a !important; border-color:#15803d !important; color:#ffffff !important; }
+        #modal-mcq .mcq-option.wrong   { background:#dc2626 !important; border-color:#b91c1c !important; color:#ffffff !important; }
+        .dark #modal-mcq .mcq-option.correct { background:#15803d !important; border-color:#4ade80 !important; color:#ffffff !important; }
+        .dark #modal-mcq .mcq-option.wrong   { background:#b91c1c !important; border-color:#f87171 !important; color:#ffffff !important; }
+        .mcq-option.correct { background:#16a34a !important; border-color:#15803d !important; color:#ffffff !important; }
+        .mcq-option.wrong   { background:#dc2626 !important; border-color:#b91c1c !important; color:#ffffff !important; }
+        .dark .mcq-option.correct { background:#15803d !important; border-color:#4ade80 !important; color:#ffffff !important; }
+        .dark .mcq-option.wrong   { background:#b91c1c !important; border-color:#f87171 !important; color:#ffffff !important; }
         /* ── Mobile: content area shrinks so navbar never overlaps ── */
         @media (max-width: 1023px) {
             /* navbar height ≈ 72px pill + 12px top margin + 12px bottom margin + safe area */
@@ -85,6 +89,16 @@
         #mobile-bottom-nav { display: none; }
         .mob-nav-btn { position: relative; color: #6b7280; }
         .dark .mob-nav-btn { color: #6b7280; }
+        .mob-nav-btn.mob-active {
+            color: white !important;
+            background-color: var(--accent);
+            border-radius: 12px;
+        }
+        .dark .mob-nav-btn.mob-active {
+            color: white !important;
+            background-color: var(--accent);
+            border-radius: 12px;
+        }
 
         /* ── Mobile full-bleed layout ── */
         @media (max-width: 1023px) {
@@ -98,8 +112,16 @@
             }
             #ai-chat-messages { padding-bottom: 6px; }
         }
-        /* Provider pills */
-        .provider-pill { transition: all 0.15s; }
+        /* AI Chat Sidebar — persistent side-by-side, collapsible */
+        #ai-chat-sidebar-inline {
+            transition: width 0.25s ease, min-width 0.25s ease;
+            overflow: hidden;
+        }
+        #tab-content-aichat {
+            flex-direction: row !important;
+        }
+
+
         .provider-pill.active { background: white; color: #374151; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
         .dark .provider-pill.active { background: #374151; color: white; }
 
@@ -124,6 +146,8 @@
             pointer-events: none !important;
             visibility: hidden;
         }
+        /* Button-এর ভেতরের SVG/icon click block করবে না */
+        button > svg, button > i, button svg, button i { pointer-events: none; }
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -269,13 +293,19 @@
 
         /* Compact tab bar active state */
         .compact-tab-btn.tab-active {
-            color: #4f46e5 !important;
-            background-color: #eef2ff;
+            color: #eef2ff !important;
+            background-color: #4f46e5;
             font-weight: 600;
+            border: 1.5px solid #4f46e5;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
         }
         .dark .compact-tab-btn.tab-active {
-            color: #818cf8 !important;
-            background-color: rgba(79,70,229,0.15);
+            color: #c7d2fe !important;
+            background-color: rgba(79,70,229,0.25);
+            border: 1.5px solid #818cf8;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
         }
 
         /* Focus Mode */
@@ -406,18 +436,18 @@
                     </div>
 
                     <!-- Sticky Header -->
-                    <div class="sticky top-0 z-30 bg-gray-50/95 dark:bg-gray-950/95 pt-4 pb-4 mb-4 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors backdrop-blur-md">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div class="flex items-center gap-3">
-                                <button onclick="goHome()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition">
-                                    <i data-lucide="arrow-left" class="h-6 w-6"></i>
+                    <div class="sticky top-0 z-30 bg-gray-50/95 dark:bg-gray-950/95 pt-3 pb-3 mb-4 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors backdrop-blur-md">
+                        <div class="flex flex-row justify-between items-center gap-1.5 min-w-0">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                <button onclick="goHome()" class="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition">
+                                    <i data-lucide="arrow-left" class="h-5 w-5"></i>
                                 </button>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white"><span id="selected-class-name" class="text-indigo-600 dark:text-indigo-400"></span></h2>
-                                    <p class="text-xs text-gray-500">বিষয় নির্বাচন করুন</p>
+                                <div class="min-w-0">
+                                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white truncate"><span id="selected-class-name" class="text-indigo-600 dark:text-indigo-400"></span></h2>
+                                    <p class="text-[10px] text-gray-500 truncate">বিষয় নির্বাচন করুন</p>
                                 </div>
                             </div>
-                            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
                                 <div id="group-selector-container" class="hidden">
                                     <select id="group-select" onchange="updateGroup()" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                                         <option value="science">বিজ্ঞান (Science)</option>
@@ -425,29 +455,29 @@
                                         <option value="commerce">ব্যবসায় শিক্ষা (Commerce)</option>
                                     </select>
                                 </div>
-                                <div class="flex items-center gap-2 ml-auto">
-                                    <label class="flex items-center cursor-pointer select-none bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
-                                        <span class="text-xs font-medium mr-2">ঐচ্ছিক বিষয়</span>
-                                        <input type="checkbox" id="toggle-optional" class="accent-indigo-600 w-4 h-4" onchange="toggleOptionalSubjects()">
+                                <div class="flex items-center gap-1.5">
+                                    <label class="flex items-center cursor-pointer select-none bg-white dark:bg-gray-800 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <span class="text-[10px] font-medium mr-1.5 whitespace-nowrap">ঐচ্ছিক বিষয়</span>
+                                        <input type="checkbox" id="toggle-optional" class="accent-indigo-600 w-3.5 h-3.5" onchange="toggleOptionalSubjects()">
                                     </label>
-                                    <button id="btn-edit-mode" onclick="toggleEditMode()" class="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition">
-                                        <i data-lucide="edit-3" class="h-4 w-4"></i> এডিট
+                                    <button id="btn-edit-mode" onclick="toggleEditMode()" class="flex items-center gap-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-2.5 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap">
+                                        <i data-lucide="edit-3" class="h-3.5 w-3.5"></i> এডিট
                                     </button>
-                                    <div class="relative flex-shrink-0" id="add-btn-wrapper">
-                                         <button onclick="toggleAddMenu()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                                            <i data-lucide="plus" class="h-4 w-4"></i> যুক্ত করুন
+                                    <div class="relative flex-shrink-0" id="add-btn-wrapper" style="z-index:2">
+                                         <button onclick="toggleAddMenu()" class="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap">
+                                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> যুক্ত করুন
                                         </button>
-                                        <div id="add-menu-panel" class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden" style="display:none">
+                                        <div id="add-menu-panel" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden" style="position:fixed;z-index:99998;display:none">
                                             <button onclick="closeAddMenu();openAddSubjectModal();" class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm flex items-center gap-2"><i data-lucide="plus-circle" class="h-4 w-4"></i> ম্যানুয়াল যোগ</button>
                                             <button onclick="closeAddMenu();openBulkImportSubjectModal();" class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm border-t border-gray-100 dark:border-gray-700 flex items-center gap-2"><i data-lucide="list-plus" class="h-4 w-4"></i> বাল্ক ইম্পোর্ট</button>
                                             <button onclick="closeAddMenu();exportClassData();" class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 text-indigo-600"><i data-lucide="download" class="h-4 w-4"></i> বাল্ক এক্সপোর্ট</button>
                                         </div>
                                     </div>
                                     <!-- Tools button for subjects page -->
-                                    <div class="relative flex-shrink-0" id="tools-menu-wrapper-subjects">
+                                    <div class="relative flex-shrink-0" id="tools-menu-wrapper-subjects" style="z-index:3">
                                         <button onclick="toggleToolsMenuSubjects()" title="টুলস মেনু"
-                                            class="flex items-center gap-1.5 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                            <i data-lucide="settings-2" class="h-5 w-5"></i>
+                                            class="flex items-center gap-1.5 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" style="isolation:isolate">
+                                            <i data-lucide="settings-2" class="h-5 w-5" style="pointer-events:none"></i>
                                         </button>
                                         <div id="tools-menu-panel-subjects" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden min-w-[190px]" style="position:fixed;z-index:99999;display:none">
                                             <div class="flex flex-col py-1">
@@ -569,93 +599,93 @@
                                 </div>
 
                                 <!-- Tools menu panel (moved to body by JS) -->
-                                <div id="tools-menu-panel" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden min-w-[220px]" style="position:fixed;z-index:99999;display:none">
-                                <div class="flex flex-col py-1">
+                                <div id="tools-menu-panel" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden min-w-[200px]" style="position:fixed;z-index:99999;display:none">
+                                <div class="flex flex-col py-0.5 overflow-y-auto" style="max-height:min(92vh, 600px);scrollbar-width:thin">
                                     <!-- Split Mode Toggle -->
-                                    <button onclick="closeToolsMenu();toggleSplitMode();" id="tools-split-mode-btn" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-amber-600 dark:text-amber-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="columns-2" class="h-4 w-4"></i>
+                                    <button onclick="closeToolsMenu();toggleSplitMode();" id="tools-split-mode-btn" class="flex items-center gap-2 px-3 py-2 text-xs text-amber-600 dark:text-amber-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="columns-2" class="h-3.5 w-3.5 flex-shrink-0"></i>
                                         <span>স্প্লিট মোড</span>
-                                        <span id="tools-split-mode-badge" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">বন্ধ</span>
+                                        <span id="tools-split-mode-badge" class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">বন্ধ</span>
                                     </button>
-                                    <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                    <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
                                     <!-- Tab actions (shown contextually) -->
                                     <div id="tools-tab-actions-text" style="display:none;flex-direction:column">
-                                        <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">ডিজিটাল পাঠ</div>
-                                        <button onclick="closeToolsMenu();openAddTextLinkModal();" class="flex items-center gap-2.5 px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="cloud" class="h-4 w-4"></i> ক্লাউড লিংক
+                                        <div class="px-3 py-0.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">ডিজিটাল পাঠ</div>
+                                        <button onclick="closeToolsMenu();openAddTextLinkModal();" class="flex items-center gap-2 px-3 py-2 text-xs text-purple-600 dark:text-purple-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="cloud" class="h-3.5 w-3.5 flex-shrink-0"></i> ক্লাউড লিংক
                                         </button>
-                                        <label class="cursor-pointer flex items-center gap-2.5 px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="upload" class="h-4 w-4"></i> ফাইল আপলোড
+                                        <label class="cursor-pointer flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="upload" class="h-3.5 w-3.5 flex-shrink-0"></i> ফাইল আপলোড
                                             <input type="file" class="hidden" accept=".txt,.md" onchange="closeToolsMenu();loadLocalTextFile(this)">
                                         </label>
-                                        <button onclick="closeToolsMenu();openEditContentModal('text');" class="flex items-center gap-2.5 px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="edit" class="h-4 w-4"></i> এডিট
+                                        <button onclick="closeToolsMenu();openEditContentModal('text');" class="flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="edit" class="h-3.5 w-3.5 flex-shrink-0"></i> এডিট
                                         </button>
-                                        <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                        <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
                                     </div>
                                     <div id="tools-tab-actions-pdf" style="display:none;flex-direction:column">
-                                        <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">মূল বই (PDF)</div>
-                                        <label class="cursor-pointer flex items-center gap-2.5 px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="folder-open" class="h-4 w-4"></i> Local PDF
+                                        <div class="px-3 py-0.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">মূল বই (PDF)</div>
+                                        <label class="cursor-pointer flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="folder-open" class="h-3.5 w-3.5 flex-shrink-0"></i> Local PDF
                                             <input type="file" class="hidden" accept="application/pdf" onchange="closeToolsMenu();loadLocalPdfFile(this)">
                                         </label>
-                                        <button onclick="closeToolsMenu();openEditContentModal('pdf');" class="flex items-center gap-2.5 px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="settings" class="h-4 w-4"></i> ম্যানেজ
+                                        <button onclick="closeToolsMenu();openEditContentModal('pdf');" class="flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="settings" class="h-3.5 w-3.5 flex-shrink-0"></i> ম্যানেজ
                                         </button>
-                                        <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                        <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
                                     </div>
                                     <div id="tools-tab-actions-qna" style="display:none;flex-direction:column">
-                                        <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">প্রশ্ন ও উত্তর</div>
-                                        <div class="flex items-center gap-2 px-4 py-2">
+                                        <div class="px-3 py-0.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wide">প্রশ্ন ও উত্তর</div>
+                                        <div class="flex items-center gap-2 px-3 py-1.5">
                                             <div class="bg-gray-200 dark:bg-gray-700 rounded-lg p-0.5 flex">
-                                                <button onclick="toggleQnaView('list')" id="tools-btn-qna-list" class="px-2 py-1 text-xs rounded-md bg-white dark:bg-gray-600 text-gray-800 dark:text-white font-medium shadow-sm transition">List</button>
-                                                <button onclick="toggleQnaView('card')" id="tools-btn-qna-card" class="px-2 py-1 text-xs rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 transition">Flash</button>
+                                                <button onclick="toggleQnaView('list')" id="tools-btn-qna-list" class="px-2 py-0.5 text-xs rounded-md bg-white dark:bg-gray-600 text-gray-800 dark:text-white font-medium shadow-sm transition">List</button>
+                                                <button onclick="toggleQnaView('card')" id="tools-btn-qna-card" class="px-2 py-0.5 text-xs rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 transition">Flash</button>
                                             </div>
                                         </div>
-                                        <button onclick="closeToolsMenu();openEditContentModal('qna');" class="flex items-center gap-2.5 px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="plus-circle" class="h-4 w-4"></i> প্রশ্ন যুক্ত করুন
+                                        <button onclick="closeToolsMenu();openEditContentModal('qna');" class="flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="plus-circle" class="h-3.5 w-3.5 flex-shrink-0"></i> প্রশ্ন যুক্ত করুন
                                         </button>
-                                        <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                                        <button onclick="closeToolsMenu();openQnaMCQPanel();" class="flex items-center gap-2.5 px-4 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                            <i data-lucide="brain" class="h-4 w-4"></i> AI MCQ তৈরি করুন
+                                        <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
+                                        <button onclick="closeToolsMenu();openQnaMCQPanel();" class="flex items-center gap-2 px-3 py-2 text-xs text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                            <i data-lucide="file-down" class="h-3.5 w-3.5 flex-shrink-0"></i> MCQ ইমপোর্ট করুন
                                         </button>
-                                        <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                                        <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
                                     </div>
                                     <!-- System -->
-                                    <button onclick="closeToolsMenu();document.getElementById('restore-file-input').click();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="upload-cloud" class="h-4 w-4"></i> রিস্টোর ডাটা
+                                    <button onclick="closeToolsMenu();document.getElementById('restore-file-input').click();" class="flex items-center gap-2 px-3 py-2 text-xs text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="upload-cloud" class="h-3.5 w-3.5 flex-shrink-0"></i> রিস্টোর ডাটা
                                     </button>
-                                    <button onclick="closeToolsMenu();confirmReset();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="rotate-ccw" class="h-4 w-4"></i> রিসেট
+                                    <button onclick="closeToolsMenu();confirmReset();" class="flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="rotate-ccw" class="h-3.5 w-3.5 flex-shrink-0"></i> রিসেট
                                     </button>
-                                    <button onclick="closeToolsMenu();exportData();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="download" class="h-4 w-4"></i> ব্যাকআপ
+                                    <button onclick="closeToolsMenu();exportData();" class="flex items-center gap-2 px-3 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="download" class="h-3.5 w-3.5 flex-shrink-0"></i> ব্যাকআপ
                                     </button>
-                                    <button onclick="closeToolsMenu();openStatsModal();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-purple-600 dark:text-purple-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="bar-chart-3" class="h-4 w-4"></i> পরিসংখ্যান
+                                    <button onclick="closeToolsMenu();openStatsModal();" class="flex items-center gap-2 px-3 py-2 text-xs text-purple-600 dark:text-purple-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="bar-chart-3" class="h-3.5 w-3.5 flex-shrink-0"></i> পরিসংখ্যান
                                     </button>
-                                    <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                                    <button onclick="closeToolsMenu();toggleTheme();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="moon" id="theme-icon" class="h-4 w-4"></i> লাইট/ডার্ক
+                                    <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
+                                    <button onclick="closeToolsMenu();toggleTheme();" class="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="moon" id="theme-icon" class="h-3.5 w-3.5 flex-shrink-0"></i> লাইট/ডার্ক
                                     </button>
-                                    <button onclick="closeToolsMenu();openThemePicker();" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
-                                        <i data-lucide="palette" class="h-4 w-4"></i> রঙ থিম
+                                    <button onclick="closeToolsMenu();openThemePicker();" class="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                                        <i data-lucide="palette" class="h-3.5 w-3.5 flex-shrink-0"></i> রঙ থিম
                                     </button>
-                                    <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-                                    <div class="px-4 py-3">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
-                                                <i data-lucide="type" class="h-4 w-4"></i>
+                                    <div class="border-t border-gray-100 dark:border-gray-700 my-0.5"></div>
+                                    <div class="px-3 py-2">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <div class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                                                <i data-lucide="type" class="h-3.5 w-3.5"></i>
                                                 <span>ফন্ট সাইজ</span>
                                             </div>
-                                            <span id="font-size-label" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">100%</span>
+                                            <span id="font-size-label" class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded-full">100%</span>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs text-gray-400 select-none font-bold" style="font-size:10px">A</span>
+                                            <span class="text-gray-400 select-none font-bold" style="font-size:9px">A</span>
                                             <input type="range" id="font-size-slider" min="10" max="200" step="1" value="100"
                                                 oninput="applyFontSize(this.value)"
                                                 class="flex-1 h-1.5 rounded-full appearance-none cursor-pointer accent-indigo-600">
-                                            <span class="text-sm text-gray-400 select-none font-bold">A</span>
+                                            <span class="text-xs text-gray-400 select-none font-bold">A</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2374,46 +2404,13 @@
                                 <!-- Tab: Q&A (Advanced Flashcard) -->
                                 <div id="tab-content-qna" class="hidden flex flex-col min-h-full">
                                     <!-- MCQ Generator Panel (inline) -->
-                                    <div id="qna-mcq-panel" class="hidden flex-shrink-0 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
-                                        <div class="flex items-center justify-between mb-2.5">
-                                            <span class="text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-1.5">
-                                                <i data-lucide="brain" class="h-3.5 w-3.5"></i> AI MCQ তৈরি করুন
-                                            </span>
-                                            <button onclick="document.getElementById('qna-mcq-panel').classList.add('hidden');document.getElementById('qna-mcq-result').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                                                <i data-lucide="x" class="h-3.5 w-3.5"></i>
-                                            </button>
-                                        </div>
-                                        <!-- Custom source row -->
-                                        <div class="flex items-center gap-2 mb-2.5">
-                                            <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                                <input type="checkbox" id="qna-mcq-custom-src-toggle" onchange="toggleQnaMCQCustomSrc(this.checked)" class="accent-indigo-600 h-3.5 w-3.5">
-                                                <span class="text-xs text-gray-600 dark:text-gray-300">কাস্টম সোর্স</span>
-                                            </label>
-                                            <button id="qna-mcq-edit-src-btn" onclick="openQnaMCQSourceEditor()" class="hidden text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition">
-                                                <i data-lucide="pencil" class="h-3 w-3"></i> এডিট
-                                            </button>
-                                            <span id="qna-mcq-src-hint" class="text-[10px] text-gray-400 truncate flex-grow"></span>
-                                        </div>
-                                        <!-- Count row -->
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex gap-1.5 flex-wrap">
-                                                <button onclick="generateMCQFromQna(5)"  class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition">৫টি</button>
-                                                <button onclick="generateMCQFromQna(10)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition">১০টি</button>
-                                                <button onclick="generateMCQFromQna(15)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg transition">১৫টি</button>
-                                            </div>
-                                            <div class="flex items-center gap-1 ml-auto">
-                                                <input type="number" id="qna-mcq-custom-count" min="1" max="50" placeholder="নিজে লিখুন" 
-                                                    class="w-24 px-2 py-1.5 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-green-400">
-                                                <button onclick="generateMCQFromQnaCustom()" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-lg transition whitespace-nowrap">তৈরি করুন</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Inline MCQ Result Area -->
-                                    <div id="qna-mcq-result" class="hidden flex-shrink-0 border-b-2 border-green-200 dark:border-green-800 bg-white dark:bg-gray-900"></div>
+                                    
 
                                     <!-- MCQ History Section -->
                                     <div id="qna-mcq-history" class="border-b border-gray-100 dark:border-gray-800 flex-shrink-0"></div>
+
+                                    <!-- MCQ Test Paper View -->
+                                    <div id="qna-mcq-testpaper" class="hidden flex-shrink-0"></div>
 
                                     <!-- List View -->
                                     <div id="qna-view-list" class="p-6 space-y-4"></div>
@@ -2429,12 +2426,38 @@
 
 
                                 <!-- Tab: AI Chat -->
-                                <div id="tab-content-aichat" class="hidden flex flex-col h-full" style="min-height:0">
+                                <div id="tab-content-aichat" class="hidden flex flex-row h-full" style="min-height:0">
+
+                                    <!-- Inline Chat History Sidebar (persistent, collapsible) -->
+                                    <div id="ai-chat-sidebar-inline" class="flex-shrink-0 border-r border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 flex-col overflow-hidden transition-all duration-300" style="width:160px; display:flex">
+                                        <div class="flex items-center justify-between px-2.5 py-2 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+                                            <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1 ai-sidebar-label tracking-wide uppercase">
+                                                <i data-lucide="message-square" class="h-3 w-3 text-indigo-400"></i>
+                                                চ্যাট ইতিহাস
+                                            </span>
+                                        </div>
+                                        <div class="px-2 py-1.5 flex-shrink-0 ai-sidebar-label">
+                                            <button onclick="newAIChat()" class="w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-semibold text-[11px] transition">
+                                                <i data-lucide="plus" class="h-3 w-3"></i> নতুন চ্যাট
+                                            </button>
+                                        </div>
+                                        <div class="flex-grow overflow-y-auto custom-scrollbar ai-sidebar-label" id="ai-conversations-list"></div>
+                                        <div class="px-2.5 py-1.5 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0 ai-sidebar-label">
+                                            <span class="text-[9px] text-gray-400">এই ডিভাইসে সেভ থাকে</span>
+                                            <button onclick="clearAllConversations()" title="সব মুছুন"
+                                                style="font-size:9px;color:#9ca3af;background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:3px"
+                                                onmouseenter="this.style.color='#ef4444'"
+                                                onmouseleave="this.style.color='#9ca3af'">সব মুছুন</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Main Chat Area -->
+                                    <div class="flex flex-col flex-grow min-w-0 h-full" style="min-height:0">
 
                                     <!-- ── Top Bar: history + Provider + Model selector ── -->
                                     <div class="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-2 py-2 flex items-center gap-1.5">
                                         <!-- Sidebar toggle -->
-                                        <button onclick="openAIChatSidebar()" title="চ্যাট হিস্ট্রি"
+                                        <button onclick="toggleAIChatSidebar()" id="ai-sidebar-toggle-btn" title="চ্যাট হিস্ট্রি"
                                             class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition">
                                             <i data-lucide="panel-left" class="h-4 w-4"></i>
                                         </button>
@@ -2445,15 +2468,17 @@
                                             <button onclick="selectAIProvider('groq')" id="provider-pill-groq"
                                                 class="provider-pill px-2 py-1 text-[10px] font-semibold rounded-md transition-all text-gray-500 dark:text-gray-400">🟠 Groq</button>
                                         </div>
-                                        <!-- Model selector -->
+                                        <!-- Model selector - compact -->
                                         <select id="ai-model-select" onchange="setAIModel(this.value)"
-                                            class="flex-grow min-w-0 text-[10px] px-1.5 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 outline-none cursor-pointer">
+                                            class="w-32 flex-shrink-0 text-[10px] px-1.5 py-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 outline-none cursor-pointer">
                                         </select>
-                                        <!-- Key button -->
-                                        <button onclick="toggleAIKeyPanel()" title="API Key"
+                                        <!-- Inline API Key buttons -->
+                                        <div id="ai-key-buttons" class="flex items-center gap-1 flex-grow min-w-0 overflow-x-auto" style="scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+                                        <!-- Key panel toggle -->
+                                        <button onclick="toggleAIKeyPanel()" title="API Key ম্যানেজ করুন"
                                             class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-amber-500 hover:border-amber-400 transition text-sm">🔑</button>
-                                        <!-- Clear chat -->
-                                        <button onclick="clearAIChat()" title="চ্যাট মুছুন"
+                                        <!-- Delete current conversation -->
+                                        <button onclick="deleteCurrentConversation()" title="এই কনভারসেশন মুছুন"
                                             class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-red-500 hover:border-red-300 transition">
                                             <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
                                         </button>
@@ -2486,18 +2511,35 @@
                                         </div>
                                     </div>
 
-                                    <!-- ── Quick prompts ── -->
-                                    <div class="flex-shrink-0 px-3 pb-2 flex gap-1.5 overflow-x-auto" style="scrollbar-width:none">
-                                        <button onclick="sendAIQuickPrompt('এই অধ্যায়ের মূল বিষয়গুলো সংক্ষেপে বলুন')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition whitespace-nowrap">📋 সারসংক্ষেপ</button>
-                                        <button onclick="sendAIQuickPrompt('এই অধ্যায় থেকে ৫টি গুরুত্বপূর্ণ MCQ প্রশ্ন তৈরি করুন')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-300 rounded-full border border-green-200 dark:border-green-800 hover:bg-green-100 transition whitespace-nowrap">❓ MCQ প্রশ্ন</button>
-                                        <button onclick="sendAIQuickPrompt('এই অধ্যায়ের কঠিন বিষয়গুলো সহজভাবে বুঝিয়ে দিন')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 rounded-full border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition whitespace-nowrap">💡 সহজ ব্যাখ্যা</button>
-                                        <button onclick="sendAIQuickPrompt('এই অধ্যায় থেকে পরীক্ষায় কী কী আসতে পারে?')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300 rounded-full border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition whitespace-nowrap">🎯 পরীক্ষার টিপস</button>
+                                    <!-- ── Quick prompts — শুধু custom source থাকলে দেখাবে ── -->
+                                    <div id="ai-quick-prompts" class="hidden flex-shrink-0 px-3 pb-2 flex gap-1.5 overflow-x-auto" style="scrollbar-width:none">
+                                        <button onclick="sendAIQuickPrompt('নিচের সোর্স টেক্সটের মূল বিষয়গুলো সংক্ষেপে বলুন')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition whitespace-nowrap">📋 সারসংক্ষেপ</button>
+                                        <button onclick="sendAIQuickPrompt('নিচের সোর্স টেক্সট থেকে ৫টি গুরুত্বপূর্ণ MCQ প্রশ্ন তৈরি করুন')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-300 rounded-full border border-green-200 dark:border-green-800 hover:bg-green-100 transition whitespace-nowrap">❓ MCQ প্রশ্ন</button>
+                                        <button onclick="sendAIQuickPrompt('নিচের সোর্স টেক্সটের কঠিন বিষয়গুলো সহজভাবে বুঝিয়ে দিন')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 rounded-full border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition whitespace-nowrap">💡 সহজ ব্যাখ্যা</button>
+                                        <button onclick="sendAIQuickPrompt('নিচের সোর্স টেক্সট থেকে পরীক্ষায় কী কী আসতে পারে?')" class="flex-shrink-0 px-2.5 py-1.5 text-[11px] bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300 rounded-full border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition whitespace-nowrap">🎯 পরীক্ষার টিপস</button>
                                     </div>
 
                                     <!-- ── Input Area ── -->
                                     <div class="flex-shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900" style="padding-bottom: env(safe-area-inset-bottom, 0px);" id="ai-input-area">
 
-                                        <!-- Active mode badge — Plain মোডে লুকানো -->
+                                        <!-- Source box — plus বাটনে চাপলে দেখা যাবে -->
+                                        <div id="ai-source-box" class="hidden border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60 px-3 pt-2 pb-2">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                                    <i data-lucide="file-text" class="h-3 w-3"></i> সোর্স টেক্সট
+                                                </span>
+                                                <div class="flex items-center gap-2">
+                                                    <span id="ai-source-token-hint" class="text-[10px] text-gray-400"></span>
+                                                    <button onclick="clearAISource()" class="text-[10px] text-gray-400 hover:text-red-500 transition">✕ সরাও</button>
+                                                </div>
+                                            </div>
+                                            <textarea id="ai-source-textarea" rows="3" placeholder="এখানে সোর্স টেক্সট লিখুন বা পেস্ট করুন..."
+                                                class="w-full text-xs px-2.5 py-2 border border-gray-200 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-indigo-300 resize-none transition"
+                                                style="max-height:120px;min-height:60px"
+                                                oninput="updateAISourceHint()"></textarea>
+                                        </div>
+
+                                        <!-- Active mode badge — পুরনো system, লুকানো রাখা হলো -->
                                         <div id="ai-mode-badge" class="hidden items-center gap-2 px-3 pt-2 pb-0.5">
                                             <span id="ai-mode-badge-text" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5"></span>
                                             <span id="ai-token-hint" class="text-[10px] text-gray-400 truncate flex-grow"></span>
@@ -2511,30 +2553,10 @@
                                         <div class="flex gap-2 items-end px-3 py-2.5">
                                             <!-- + বাটন with popup -->
                                             <div class="relative flex-shrink-0" id="ai-plus-wrapper">
-                                                <button onclick="toggleAIPlusMenu()"
+                                                <button onclick="toggleAISourceBox()" id="ai-plus-btn"
                                                     class="w-9 h-9 flex items-center justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition text-xl font-light leading-none">
                                                     +
                                                 </button>
-                                                <!-- Popup -->
-                                                <div id="ai-plus-menu" class="hidden absolute bottom-11 left-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl overflow-hidden w-52">
-                                                    <div class="px-3 pt-2.5 pb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wide">মোড বেছে নিন</div>
-                                                    <button onclick="setAIModeFromMenu('source')"
-                                                        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition text-left group">
-                                                        <span class="text-base flex-shrink-0">📖</span>
-                                                        <div>
-                                                            <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">With Source</p>
-                                                            <p class="text-[10px] text-gray-400">প্রম্পট + অধ্যায়ের লেখা</p>
-                                                        </div>
-                                                    </button>
-                                                    <button onclick="setAIModeFromMenu('context')"
-                                                        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition text-left group border-t border-gray-100 dark:border-gray-700">
-                                                        <span class="text-base flex-shrink-0">💬</span>
-                                                        <div>
-                                                            <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">With Context</p>
-                                                            <p class="text-[10px] text-gray-400">প্রম্পট + লেখা + history</p>
-                                                        </div>
-                                                    </button>
-                                                </div>
                                             </div>
 
                                             <textarea id="ai-chat-input" rows="1" placeholder="প্রশ্ন লিখুন..."
@@ -2548,6 +2570,7 @@
                                             </button>
                                         </div>
                                     </div>
+                                    </div><!-- /main chat area -->
                                 </div>
                             </div>
                         </div>
@@ -2558,34 +2581,62 @@
         </div>
     </main>
 
-    <!-- AI Chat History Sidebar -->
-    <div id="ai-chat-sidebar" class="fixed inset-y-0 left-0 z-[9997] flex" style="display:none!important">
-        <!-- Backdrop -->
-        <div id="ai-sidebar-backdrop" onclick="closeAIChatSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm"></div>
-        <!-- Panel -->
-        <div class="relative w-72 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl flex flex-col h-full z-10">
+    <!-- ── Warning / Confirm Modal ── -->
+    <!-- API Key Manager Popup Modal -->
+    <div id="modal-api-keys" class="modal opacity-0 pointer-events-none fixed inset-0 z-[99998] flex items-center justify-center bg-black/50 backdrop-blur-sm" onclick="closeApiKeyModal(event)">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-11/12 max-w-md mx-4 overflow-hidden transform transition-all border border-gray-200 dark:border-gray-700" onclick="event.stopPropagation()">
             <!-- Header -->
-            <div class="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-                <h3 class="font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                    <i data-lucide="message-square" class="h-5 w-5 text-indigo-500"></i> AI চ্যাট
-                </h3>
-                <button onclick="closeAIChatSidebar()" class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <i data-lucide="x" class="h-4 w-4 text-gray-500"></i>
-                </button>
+            <div class="flex items-center justify-between px-5 py-4 border-b border-amber-100 dark:border-amber-900">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center">
+                        <span class="text-lg">🔑</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-white">API Key ম্যানেজার</h3>
+                        <p id="api-key-modal-subtitle" class="text-[10px] text-amber-600 dark:text-amber-400"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Provider pills inside modal -->
+                    <div class="flex gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+                        <button onclick="switchModalProvider('gemini')" id="modal-pill-gemini"
+                            class="modal-provider-pill px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all text-gray-500 dark:text-gray-400">🔵 Gemini</button>
+                        <button onclick="switchModalProvider('groq')" id="modal-pill-groq"
+                            class="modal-provider-pill px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all text-gray-500 dark:text-gray-400">🟠 Groq</button>
+                    </div>
+                    <button onclick="closeModal('modal-api-keys')" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-red-500 transition text-lg leading-none">✕</button>
+                </div>
             </div>
-            <!-- New chat button -->
-            <div class="px-3 py-3 flex-shrink-0 border-b border-gray-100 dark:border-gray-800">
-                <button onclick="newAIChat()" class="w-full flex items-center gap-2 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-sm transition shadow">
-                    <i data-lucide="plus" class="h-4 w-4"></i> নতুন চ্যাট
-                </button>
-            </div>
-            <!-- Conversations list -->
-            <div class="flex-grow overflow-y-auto py-2" id="ai-conversations-list">
-                <!-- filled by JS -->
-            </div>
-            <!-- Footer info -->
-            <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-400 dark:text-gray-600 flex-shrink-0">
-                চ্যাটগুলো এই ডিভাইসে সেভ থাকে
+            <!-- Body — rendered by renderApiKeyManagerModal() -->
+            <div id="api-key-modal-body" class="p-4 max-h-[70vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="modal-warning" class="modal opacity-0 pointer-events-none fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-11/12 max-w-sm mx-4 overflow-hidden transform transition-all border-2 border-red-400 dark:border-rose-500">
+            <div class="p-6">
+                <!-- Icon + Title -->
+                <div class="flex items-start gap-4 mb-4">
+                    <div id="modal-warning-icon-wrap" class="flex-shrink-0 w-11 h-11 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                        <i data-lucide="trash-2" id="modal-warning-icon" class="h-5 w-5 text-red-500"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-warning-title" class="text-base font-bold text-gray-800 dark:text-white leading-snug"></h3>
+                        <p id="modal-warning-desc" class="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed"></p>
+                    </div>
+                </div>
+                <!-- Action buttons -->
+                <div class="flex gap-2.5 mt-5">
+                    <button onclick="closeWarningModal()"
+                        class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                        বাতিল
+                    </button>
+                    <button id="modal-warning-confirm-btn" onclick=""
+                        class="flex-1 px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition shadow-sm shadow-red-200 dark:shadow-none flex items-center justify-center gap-1.5">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        <span id="modal-warning-confirm-label">মুছুন</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2628,47 +2679,105 @@
 
     <!-- MCQ Quiz Modal -->
     <div id="modal-mcq" class="modal opacity-0 pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-            <div class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-                <h3 class="text-base font-bold dark:text-white flex items-center gap-2">
-                    <i data-lucide="brain" class="h-5 w-5 text-green-600"></i>
-                    <span id="mcq-modal-title">AI MCQ কুইজ</span>
-                </h3>
-                <div class="flex items-center gap-2">
-                    <button onclick="openSavedQuizzes()" class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition border border-amber-200 dark:border-amber-700">
-                        <i data-lucide="history" class="h-3.5 w-3.5"></i> পুরনো কুইজ
+        <div class="bg-white dark:bg-gray-900 w-11/12 max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border-2 border-red-400 dark:border-rose-500">
+
+            <!-- ── IMPORT SCREEN ── -->
+            <div id="mcq-screen-import">
+                <!-- Header -->
+                <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-sm font-bold dark:text-white flex items-center gap-2">
+                        <i data-lucide="file-down" class="h-4 w-4 text-indigo-500"></i> MCQ ইমপোর্ট
+                    </h3>
+                    <button onclick="closeModal('modal-mcq')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400">
+                        <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
-                    <button onclick="closeModal('modal-mcq')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"><i data-lucide="x" class="h-5 w-5"></i></button>
                 </div>
-            </div>
-            <!-- Timer/Score bar — shown only during timed quiz -->
-            <div id="mcq-timer-bar" class="hidden flex-shrink-0 flex items-center justify-between px-5 py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                <span id="mcq-score-badge" class="text-sm font-bold text-indigo-600 dark:text-indigo-400"></span>
-                <div id="mcq-timer-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                    <i data-lucide="timer" class="h-4 w-4 text-amber-500"></i>
-                    <span id="mcq-timer-display" class="text-sm font-bold text-amber-600 dark:text-amber-400 font-mono"></span>
+                <!-- Tabs -->
+                <div class="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 mx-4 mt-3 mb-0 rounded-xl flex-shrink-0" id="mcq-modal-tabs">
+                    <button onclick="switchMCQModalTab('ai')" id="mcq-modal-tab-ai"
+                        class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm transition">
+                        🤖 AI দিয়ে তৈরি
+                    </button>
+                    <button onclick="switchMCQModalTab('manual')" id="mcq-modal-tab-manual"
+                        class="flex-1 py-1.5 text-xs font-medium rounded-lg text-gray-500 dark:text-gray-400 transition">
+                        ✍️ নিজে লিখুন
+                    </button>
                 </div>
-            </div>
-            <div id="mcq-modal-body" class="flex-grow overflow-y-auto p-5">
-                <!-- Content injected by JS -->
-                <div class="flex flex-col items-center justify-center py-10 gap-4">
-                    <div class="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                        <i data-lucide="brain" class="h-8 w-8 opacity-30"></i>
-                        <div>
-                            <p class="font-semibold">কতটি প্রশ্ন চান?</p>
-                            <p class="text-xs text-gray-400">অধ্যায়ের বিষয়বস্তু থেকে AI প্রশ্ন তৈরি করবে</p>
+                <!-- AI Tab content -->
+                <div id="mcq-modal-ai" class="px-4 pt-3 pb-4 space-y-2.5 overflow-y-auto">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">সোর্স টেক্সট</span>
+                            <div class="flex items-center gap-2">
+                                <span id="qna-mcq-src-token" class="text-[10px] text-gray-400"></span>
+                                <button onclick="fillMCQSourceFromChapter()" class="text-[10px] text-indigo-500 hover:text-indigo-700 transition">অধ্যায় থেকে নিন</button>
+                            </div>
+                        </div>
+                        <textarea id="qna-mcq-source-textarea" rows="4" placeholder="এখানে সোর্স টেক্সট লিখুন বা পেস্ট করুন…"
+                            oninput="updateMCQSrcToken()"
+                            class="w-full px-3 py-2 text-xs border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-green-400 resize-none custom-scrollbar"></textarea>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex gap-1.5">
+                            <button onclick="generateMCQFromQna(5)"  class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition">৫টি</button>
+                            <button onclick="generateMCQFromQna(10)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition">১০টি</button>
+                            <button onclick="generateMCQFromQna(15)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg transition">১৫টি</button>
+                        </div>
+                        <div class="flex items-center gap-1 ml-auto">
+                            <input type="number" id="qna-mcq-custom-count" min="1" max="50" placeholder="সংখ্যা"
+                                class="w-16 px-2 py-1.5 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-green-400 text-center">
+                            <button onclick="generateMCQFromQnaCustom()" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded-lg transition whitespace-nowrap">তৈরি করুন</button>
                         </div>
                     </div>
-                    <div class="flex gap-2 flex-wrap justify-center">
-                        <button onclick="generateMCQ(5)" class="px-5 py-2.5 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow">৫টি প্রশ্ন</button>
-                        <button onclick="generateMCQ(10)" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow">১০টি প্রশ্ন</button>
-                        <button onclick="generateMCQ(15)" class="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition shadow">১৫টি প্রশ্ন</button>
+                </div>
+                <!-- Manual Tab content -->
+                <div id="mcq-modal-manual" class="hidden px-4 pt-3 pb-4 space-y-2 overflow-y-auto">
+                    <div class="flex gap-1.5">
+                        <button onclick="switchManualInputMode('json')" id="manual-mode-json"
+                            class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-indigo-600 text-white transition">JSON</button>
+                        <button onclick="switchManualInputMode('simple')" id="manual-mode-simple"
+                            class="px-2.5 py-1 text-[10px] font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition">সহজ ফরম্যাট</button>
                     </div>
-                    <div id="mcq-api-warning" class="hidden w-full p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl text-sm text-amber-700 dark:text-amber-300 text-center">
-                        ⚠️ AI টিউটর ট্যাবে API Key দিন, তারপর কুইজ তৈরি করুন।
+                    <div id="manual-hint-json" class="text-[10px] text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-lg px-2 py-1.5 font-mono leading-relaxed">
+                        {"questions":[{"q":"প্রশ্ন","options":["ক) ...","খ) ...","গ) ...","ঘ) ..."],"answer":0}]}
                     </div>
+                    <div id="manual-hint-simple" class="hidden text-[10px] text-gray-400 bg-gray-100 dark:bg-gray-700/50 rounded-lg px-2 py-1.5 leading-relaxed">
+                        প্রশ্ন: আকাশ কী রঙের?<br>ক) লাল খ) নীল গ) সবুজ ঘ) হলুদ<br>উত্তর: খ<br><br>(প্রতিটি প্রশ্নের মাঝে একটি ফাঁকা লাইন দিন)
+                    </div>
+                    <textarea id="qna-mcq-manual-textarea" rows="5" placeholder="এখানে MCQ পেস্ট করুন…"
+                        class="w-full px-3 py-2 text-xs border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-indigo-400 resize-none font-mono custom-scrollbar"></textarea>
+                    <button onclick="importManualMCQ()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition">
+                        ✓ MCQ যোগ করুন
+                    </button>
                 </div>
             </div>
+
+            <!-- ── QUIZ SCREEN ── -->
+            <div id="mcq-screen-quiz" class="hidden flex-col min-h-0 flex-1" style="display:none">
+                <!-- Header -->
+                <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+                    <h3 id="mcq-modal-title" class="text-sm font-bold dark:text-white flex items-center gap-2">
+                        <i data-lucide="brain" class="h-4 w-4 text-green-600"></i> MCQ কুইজ
+                    </h3>
+                    <div class="flex items-center gap-2">
+                        <button onclick="closeModal('modal-mcq')" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Timer bar (shown during active quiz) -->
+                <div id="mcq-timer-bar" class="hidden flex-shrink-0 flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-800">
+                    <span id="mcq-score-badge" class="text-sm font-bold text-indigo-600 dark:text-indigo-400"></span>
+                    <div id="mcq-timer-pill" class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                        <i data-lucide="timer" class="h-3.5 w-3.5 text-amber-500"></i>
+                        <span id="mcq-timer-display" class="text-sm font-bold text-amber-600 dark:text-amber-400 font-mono"></span>
+                    </div>
+                </div>
+                <!-- Quiz body -->
+                <div id="mcq-modal-body" class="flex-grow overflow-y-auto p-4">
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -2696,52 +2805,52 @@
         </div>
 
         <!-- ── READER NAV (tab buttons) ── -->
-        <div id="mob-nav-reader-bar" class="hidden mx-3 mb-2 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden" style="background:rgba(15,18,30,0.97); border:1px solid rgba(255,255,255,0.08)">
+        <div id="mob-nav-reader-bar" class="hidden mx-3 mb-2 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden bg-white/95 dark:bg-[rgba(15,18,30,0.97)] border border-gray-100 dark:border-white/[0.08]">
             <div class="flex items-center px-2 py-1.5 gap-1.5">
                 <!-- সূচিপত্র + বিষয় group -->
-                <div class="flex gap-1 bg-white/10 rounded-xl px-1.5 py-1.5 flex-shrink-0">
-                    <button onclick="openMobTOC()" class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+                <div class="flex gap-1 bg-gray-200 dark:bg-white/10 rounded-xl px-1.5 py-1.5 flex-shrink-0">
+                    <button onclick="openMobTOC()" class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-all">
                         <i data-lucide="list" class="h-4 w-4"></i>
                         <span class="text-[8px] font-medium">সূচিপত্র</span>
                     </button>
-                    <button onclick="showSubjects()" class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+                    <button onclick="showSubjects()" class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-all">
                         <i data-lucide="book-open" class="h-4 w-4"></i>
                         <span class="text-[8px] font-medium">বিষয়</span>
                     </button>
                 </div>
 
                 <!-- Tab buttons group -->
-                <div class="flex flex-1 gap-1 bg-white/10 rounded-xl px-1.5 py-1.5 overflow-x-auto" style="scrollbar-width:none">
+                <div class="flex flex-1 gap-1 bg-gray-200 dark:bg-white/10 rounded-xl px-1.5 py-1.5 overflow-x-auto" style="scrollbar-width:none">
                     <button onclick="switchTab('text');mobReaderTabActive('mob-rtab-text')" id="mob-rtab-text"
-                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-300 hover:text-white transition-all">
+                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-all">
                         <i data-lucide="file-text" class="h-4 w-4 flex-shrink-0"></i>
                         <span class="text-[8px] font-medium whitespace-nowrap">text</span>
                     </button>
                     <button onclick="switchTab('pdf');mobReaderTabActive('mob-rtab-pdf')" id="mob-rtab-pdf"
-                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-300 hover:text-white transition-all">
+                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-all">
                         <i data-lucide="file" class="h-4 w-4 flex-shrink-0"></i>
                         <span class="text-[8px] font-medium whitespace-nowrap">PDF</span>
                     </button>
                     <button onclick="switchTab('video');mobReaderTabActive('mob-rtab-video')" id="mob-rtab-video"
-                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-300 hover:text-white transition-all">
+                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-all">
                         <i data-lucide="play-circle" class="h-4 w-4 flex-shrink-0"></i>
                         <span class="text-[8px] font-medium whitespace-nowrap">Video</span>
                     </button>
                     <button onclick="switchTab('qna');mobReaderTabActive('mob-rtab-qna')" id="mob-rtab-qna"
-                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-300 hover:text-white transition-all">
+                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-all">
                         <i data-lucide="help-circle" class="h-4 w-4 flex-shrink-0"></i>
                         <span class="text-[8px] font-medium whitespace-nowrap">QnA</span>
                     </button>
                     <button onclick="switchTab('aichat');mobReaderTabActive('mob-rtab-aichat')" id="mob-rtab-aichat"
-                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-300 hover:text-white transition-all">
+                        class="mob-rtab flex-1 min-w-0 flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-all">
                         <i data-lucide="bot" class="h-4 w-4 flex-shrink-0"></i>
                         <span class="text-[8px] font-medium whitespace-nowrap">Ai</span>
                     </button>
                 </div>
 
                 <!-- Tools button -->
-                <div class="flex-shrink-0 bg-white/10 rounded-xl p-1.5">
-                    <button id="mob-reader-tools-btn" onclick="mobNavTools()" class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+                <div class="flex-shrink-0 bg-gray-200 dark:bg-white/10 rounded-xl p-1.5">
+                    <button id="mob-reader-tools-btn" onclick="mobNavTools()" class="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10 transition-all">
                         <i data-lucide="sliders-horizontal" class="h-4 w-4"></i>
                         <span class="text-[8px] font-medium">টুলস</span>
                     </button>
@@ -2749,6 +2858,30 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- সব বিষয়ের সূচিপত্র — subjects page modal -->
+    <div id="modal-subjects-toc" class="modal opacity-0 pointer-events-none fixed inset-0 z-[9998] flex items-end justify-center bg-black/50 backdrop-blur-sm" onclick="if(event.target===this)closeModal('modal-subjects-toc')">
+        <div class="bg-white dark:bg-gray-900 w-full rounded-t-3xl shadow-2xl flex flex-col" style="max-height:80vh">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                        <i data-lucide="list" class="h-4 w-4 text-indigo-600 dark:text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <h3 id="subjects-toc-title" class="font-bold text-gray-800 dark:text-white text-sm">সকল বিষয়ের সূচিপত্র</h3>
+                        <p id="subjects-toc-subtitle" class="text-[10px] text-gray-400"></p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-subjects-toc')" class="p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <!-- drag handle -->
+            <div class="flex justify-center pt-1.5 pb-0 flex-shrink-0"><div class="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full"></div></div>
+            <!-- body -->
+            <div id="subjects-toc-body" class="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar"></div>
+        </div>
     </div>
 
     <!-- সূচিপত্র popup modal — full sidebar clone for mobile -->
@@ -3239,6 +3372,11 @@
             const _toolsPanel = document.getElementById('tools-menu-panel');
             if (_toolsPanel && _toolsPanel.parentNode !== document.body) {
                 document.body.appendChild(_toolsPanel);
+            }
+            // Same for subjects tools panel
+            const _toolsPanelSubjects = document.getElementById('tools-menu-panel-subjects');
+            if (_toolsPanelSubjects && _toolsPanelSubjects.parentNode !== document.body) {
+                document.body.appendChild(_toolsPanelSubjects);
             }
             lucide.createIcons();
             updateMobileNav();
@@ -3805,6 +3943,10 @@
             currentChapterNode = node;
             ensureContentStructure(currentChapterNode);
             document.getElementById('content-empty').classList.add('hidden');
+            // Hide testpaper only if it belongs to a different chapter
+            if (_testPaperChapterId && _testPaperChapterId !== node.id) {
+                document.getElementById('qna-mcq-testpaper')?.classList.add('hidden');
+            }
 
             if (!isAutoOpen) {
                 renderChapters();
@@ -4066,6 +4208,10 @@
                 }
                 // MCQ history for this chapter
                 renderQnaMCQHistory();
+                // Restore testpaper if it belongs to this chapter
+                if (_testPaperChapterId && currentChapterNode && _testPaperChapterId === currentChapterNode.id) {
+                    document.getElementById('qna-mcq-testpaper')?.classList.remove('hidden');
+                }
             }
             lucide.createIcons();
         }
@@ -4357,14 +4503,33 @@
             if (id === 'modal-stats') {
                 destroyCharts(); 
                 if (statsInterval) clearInterval(statsInterval);
+                // stats বন্ধ হলে navbar highlight সরাও
+                document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('mob-active'));
             }
             if (id === 'modal-mcq' && _mcqTimer) {
                 clearInterval(_mcqTimer);
                 _mcqTimer = null;
             }
-            if (id === 'modal-mcq') stopPopupTimer();
-            document.getElementById(id).classList.add('opacity-0', 'pointer-events-none'); 
-            document.body.classList.remove('modal-active'); 
+            if (id === 'modal-mcq') {
+                stopPopupTimer();
+                stopInlineTimer();
+            }
+            const el = document.getElementById(id);
+            el.classList.add('opacity-0', 'pointer-events-none'); 
+            document.body.classList.remove('modal-active');
+            if (id === 'modal-mcq') {
+                el.addEventListener('transitionend', function handler() {
+                    el.removeEventListener('transitionend', handler);
+                    const imp = document.getElementById('mcq-screen-import');
+                    const quiz = document.getElementById('mcq-screen-quiz');
+                    if (imp) imp.style.display = '';
+                    if (quiz) quiz.style.display = 'none';
+                    const tb = document.getElementById('mcq-timer-bar');
+                    if (tb) tb.classList.add('hidden');
+                    const b = document.getElementById('mcq-modal-body');
+                    if (b) b.innerHTML = '';
+                }, { once: true });
+            }
         }
         let confirmCb = null;
         function openConfirmModal(msg, cb) { document.getElementById('confirm-modal-text').innerText = msg; confirmCb = cb; openModal('modal-confirm'); }
@@ -4390,15 +4555,21 @@
             const btn = document.getElementById('compact-tools-btn');
             if (!btn) return;
             const r = btn.getBoundingClientRect();
-            if (r.width === 0 && r.height === 0) {
-                p.style.top  = '50px';
-                p.style.right = '16px';
-            } else {
-                p.style.top   = (r.bottom + 4) + 'px';
-                p.style.right = (window.innerWidth - r.right) + 'px';
-            }
-            p.style.left    = 'auto';
+            // First show to measure height
+            p.style.visibility = 'hidden';
             p.style.display = 'block';
+            const ph = p.offsetHeight;
+            p.style.visibility = '';
+            // Flip up if not enough space below
+            const spaceBelow = window.innerHeight - r.bottom - 8;
+            if (spaceBelow < ph && r.top > ph) {
+                p.style.top  = (r.top - ph - 4) + 'px';
+            } else {
+                p.style.top  = (r.bottom + 4) + 'px';
+            }
+            p.style.right = (window.innerWidth - r.right) + 'px';
+            p.style.left  = 'auto';
+            p.style.bottom = 'auto';
             _toolsMenuOpen  = true;
         }
         document.addEventListener('click', function(e) {
@@ -4432,6 +4603,14 @@
                 p.style.display = 'none';
                 _addMenuOpen = false;
             } else {
+                const btn = document.querySelector('#add-btn-wrapper button');
+                if (btn) {
+                    const r = btn.getBoundingClientRect();
+                    p.style.top = (r.bottom + 4) + 'px';
+                    p.style.right = (window.innerWidth - r.right) + 'px';
+                    p.style.left = 'auto';
+                    p.style.width = '14rem';
+                }
                 p.style.display = 'block';
                 _addMenuOpen = true;
             }
@@ -4454,18 +4633,30 @@
         }
         function toggleToolsMenuSubjects() {
             const p = document.getElementById('tools-menu-panel-subjects');
-            const btn = document.querySelector('#tools-menu-wrapper-subjects button');
-            if (!p || !btn) return;
+            if (!p) return;
             if (_toolsMenuSubjectsOpen) {
                 p.style.display = 'none';
                 _toolsMenuSubjectsOpen = false;
             } else {
-                const r = btn.getBoundingClientRect();
-                p.style.top = (r.bottom + 4) + 'px';
-                p.style.right = (window.innerWidth - r.right) + 'px';
-                p.style.left = 'auto';
+                const btn = document.querySelector('#tools-menu-wrapper-subjects button');
+                if (btn) {
+                    const r = btn.getBoundingClientRect();
+                    p.style.top    = (r.bottom + 4) + 'px';
+                    p.style.bottom = 'auto';
+                    p.style.right  = (window.innerWidth - r.right) + 'px';
+                    p.style.left   = 'auto';
+                } else {
+                    p.style.top   = '60px';
+                    p.style.right = '12px';
+                    p.style.left  = 'auto';
+                }
                 p.style.display = 'block';
                 _toolsMenuSubjectsOpen = true;
+                lucide.createIcons();
+                // SVG replace হওয়ার পরেও pointer-events বন্ধ রাখো
+                document.querySelectorAll('#tools-menu-wrapper-subjects button svg, #tools-menu-wrapper-subjects button i').forEach(el => {
+                    el.style.pointerEvents = 'none';
+                });
             }
         }
         document.addEventListener('click', function(e) {
@@ -6179,13 +6370,11 @@
         </div>`;
 
         const chapterText = (currentChapterNode.content?.text || '').substring(0, 3000);
-        const prompt = `তুমি একজন অভিজ্ঞ শিক্ষক। নিচের তথ্য থেকে ঠিক ${count}টি MCQ প্রশ্ন তৈরি করো।
-বিষয়: ${currentSubject?.name || 'অজানা'}
-অধ্যায়: ${currentChapterNode.title}
-${chapterText ? 'বিষয়বস্তু:\n' + chapterText : '(অধ্যায়ের সাধারণ জ্ঞান থেকে প্রশ্ন করো)'}
+        const prompt = `নিচের তথ্য থেকে ঠিক ${count}টি MCQ প্রশ্ন তৈরি করো।
+বিষয়বস্তু: ${chapterText || '(সাধারণ জ্ঞান থেকে প্রশ্ন করো)'}
 
 শুধুমাত্র নিচের JSON ফরম্যাটে উত্তর দাও, অন্য কিছু লিখবে না:
-{"questions":[{"q":"প্রশ্ন","options":["ক) বিকল্প১","খ) বিকল্প২","গ) বিকল্প৩","ঘ) বিকল্প৪"],"answer":0,"explain":"ব্যাখ্যা"}]}
+{"questions":[{"q":"প্রশ্ন","options":["ক) বিকল্প১","খ) বিকল্প২","গ) বিকল্প৩","ঘ) বিকল্প৪"],"answer":0}]}
 answer = সঠিক বিকল্পের index (0-3)`;
 
         try {
@@ -6295,20 +6484,23 @@ answer = সঠিক বিকল্পের index (0-3)`;
                 </div>`;
         }
 
-        body.innerHTML = `<div class="space-y-5" id="mcq-questions-list"></div>`;
+        const isWide = window.innerWidth >= 768;
+        body.innerHTML = `<div style="${isWide ? 'display:grid;grid-template-columns:1fr 1fr;gap:1rem;' : 'display:flex;flex-direction:column;gap:1rem;'}" class="p-3" id="mcq-questions-list"></div>`;
         const list = document.getElementById('mcq-questions-list');
         mcqQuestions.forEach((q, qi) => {
+            const {options: sOpts, answer: sAns} = shuffleOptions(q);
+            // Store shuffled answer for grading
+            q._shuffledAnswer = sAns;
             const div = document.createElement('div');
-            div.className = 'p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700';
+            div.className = 'p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700 mb-4';
             div.id = `mcq-q-${qi}`;
             div.innerHTML = `
                 <p class="font-semibold text-gray-800 dark:text-gray-100 mb-3 text-sm leading-relaxed">${qi+1}. ${q.q}</p>
                 <div class="space-y-2" id="mcq-opts-${qi}">
-                    ${(q.options||[]).map((opt, oi) => `
+                    ${sOpts.map((opt, oi) => `
                         <div class="mcq-option px-3 py-2.5 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 border-2 border-gray-200 dark:border-gray-600 cursor-pointer select-none"
                              onclick="selectMCQOption(${qi}, ${oi})">${opt}</div>`).join('')}
-                </div>
-                <div id="mcq-explain-${qi}" class="hidden mt-2 p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300 leading-relaxed"></div>`;
+                </div>`;
             list.appendChild(div);
         });
 
@@ -6350,10 +6542,8 @@ answer = সঠিক বিকল্পের index (0-3)`;
                 optsEl.dataset.answered = 'timeout';
                 optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
                     el.style.pointerEvents = 'none';
-                    if (i === q.answer) { el.style.borderColor='#16a34a'; el.style.background='#dcfce7'; }
+                    if (i === q.answer) { el.classList.add('correct'); }
                 });
-                const exp = document.getElementById(`mcq-explain-${qi}`);
-                if (exp && q.explain) { exp.textContent = '💡 ' + q.explain; exp.classList.remove('hidden'); }
             }
         });
         const list = document.getElementById('mcq-questions-list');
@@ -6375,21 +6565,19 @@ answer = সঠিক বিকল্পের index (0-3)`;
     function selectMCQOption(qi, selectedIdx) {
         const q = mcqQuestions[qi];
         if (!q) return;
+        const correctIdx = (q._shuffledAnswer !== undefined) ? q._shuffledAnswer : q.answer;
         const optsEl = document.getElementById(`mcq-opts-${qi}`);
         if (!optsEl || optsEl.dataset.answered) return;
         optsEl.dataset.answered = '1';
 
         optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
             el.style.pointerEvents = 'none';
-            if (i === q.answer)    { el.classList.add('correct');    el.style.borderColor = '#16a34a'; el.style.background = '#dcfce7'; }
-            else if (i === selectedIdx) { el.classList.add('wrong'); el.style.borderColor = '#dc2626'; el.style.background = '#fee2e2'; }
+            if (i === correctIdx)    { el.classList.add('correct'); }
+            else if (i === selectedIdx) { el.classList.add('wrong'); }
         });
 
-        if (selectedIdx === q.answer) mcqScore++;
+        if (selectedIdx === correctIdx) mcqScore++;
         mcqAnswered++;
-
-        const explainEl = document.getElementById(`mcq-explain-${qi}`);
-        if (explainEl && q.explain) { explainEl.textContent = '💡 ' + q.explain; explainEl.classList.remove('hidden'); }
 
         const badge = document.getElementById('mcq-score-badge');
         if (badge) badge.textContent = `স্কোর: ${mcqScore}/${mcqQuestions.length}`;
@@ -6422,8 +6610,8 @@ answer = সঠিক বিকল্পের index (0-3)`;
         else { hideAllViews(); document.getElementById('view-classes').classList.remove('hidden'); }
     }
     function mobNavStats() {
-        _setMobNavActive('mob-nav-stats');
         openStatsModal();
+        // modal/popup বন্ধ হলে closeModal-এ clear হবে, এখানে highlight করব না
     }
     function mobNavTools() {
         const readerVisible = !document.getElementById('view-reader').classList.contains('hidden');
@@ -6445,6 +6633,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
             p.style.bottom = bottomPos; p.style.top = 'auto';
             p.style.right = '12px'; p.style.left = 'auto';
             p.style.display = 'block'; _toolsMenuSubjectsOpen = true;
+            lucide.createIcons();
         }
     }
 
@@ -6453,12 +6642,111 @@ answer = সঠিক বিকল্পের index (0-3)`;
     // ════════════════════════════════════════════
     function openMobTOC() {
         if (!currentSubject) {
-            // No subject open — just close modal & do nothing special
-            // (user should be in reader view for this to matter)
+            // Subjects page — সব বিষয়ের সূচিপত্র দেখাও
+            renderSubjectsTOC();
+            openModal('modal-subjects-toc');
             return;
         }
         renderMobTOC();
         openModal('modal-mob-toc');
+    }
+
+    function renderSubjectsTOC() {
+        const body = document.getElementById('subjects-toc-body');
+        const subtitle = document.getElementById('subjects-toc-subtitle');
+        if (!body || !currentClass) return;
+
+        const subjects = subjectsData[currentClass.id] || [];
+        if (subtitle) subtitle.textContent = `${currentClass.name} · ${subjects.length}টি বিষয়`;
+
+        body.innerHTML = subjects.length ? subjects.map(sub => {
+            const chapters = sub.chapters || [];
+            const total = _countLeafChapters(chapters);
+            return `
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <button onclick="toggleSubjectsTOCAccordion('stoc-${sub.id}')"
+                    class="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-left gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="book" class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800 dark:text-white truncate">${sub.name}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <span class="text-[10px] text-gray-400">${total}টি</span>
+                        <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-gray-400 transition-transform stoc-chevron-${sub.id}"></i>
+                    </div>
+                </button>
+                <div id="stoc-${sub.id}" class="hidden px-2 py-1.5 space-y-0.5 bg-white dark:bg-gray-900">
+                    ${_renderSubjectsTOCChapters(sub, chapters, 0)}
+                </div>
+            </div>`;
+        }).join('') : '<p class="text-center text-sm text-gray-400 py-8">কোনো বিষয় নেই।</p>';
+
+        lucide.createIcons();
+    }
+
+    function _countLeafChapters(chapters) {
+        let count = 0;
+        (chapters || []).forEach(ch => {
+            if (!ch.children || ch.children.length === 0) count++;
+            else count += _countLeafChapters(ch.children);
+        });
+        return count;
+    }
+
+    function _renderSubjectsTOCChapters(sub, chapters, depth) {
+        return (chapters || []).map(ch => {
+            const hasChildren = ch.children && ch.children.length > 0;
+            const indent = depth * 12;
+            if (hasChildren) {
+                return `
+                <div>
+                    <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gray-500 dark:text-gray-400 text-xs font-semibold" style="padding-left:${8 + indent}px">
+                        <i data-lucide="folder" class="h-3 w-3 flex-shrink-0"></i>
+                        <span class="truncate">${ch.title}</span>
+                    </div>
+                    ${_renderSubjectsTOCChapters(sub, ch.children, depth + 1)}
+                </div>`;
+            }
+            return `
+            <button onclick="openChapterFromSubjectsTOC('${sub.id}','${ch.id}')"
+                class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-left transition group" style="padding-left:${8 + indent}px">
+                <i data-lucide="file-text" class="h-3 w-3 text-gray-300 dark:text-gray-600 group-hover:text-indigo-500 flex-shrink-0"></i>
+                <span class="text-xs text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate">${ch.title}</span>
+            </button>`;
+        }).join('');
+    }
+
+    function toggleSubjectsTOCAccordion(id) {
+        const panel = document.getElementById(id);
+        if (!panel) return;
+        const subId = id.replace('stoc-', '');
+        const chevron = document.querySelector(`.stoc-chevron-${subId}`);
+        const isOpen = !panel.classList.contains('hidden');
+        panel.classList.toggle('hidden', isOpen);
+        if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+    }
+
+    function openChapterFromSubjectsTOC(subjectId, chapterId) {
+        closeModal('modal-subjects-toc');
+        const sub = subjectsData[currentClass?.id]?.find(s => s.id === subjectId);
+        if (!sub) return;
+        // chapter pre-select করো যাতে openReader সেটাই load করে
+        currentChapterNode = _findChapterById(sub.chapters, chapterId);
+        // openReader দিয়ে পুরো subject load করো — এটা view-reader দেখাবে
+        openReader(sub);
+    }
+
+    function _findChapterById(chapters, id) {
+        for (const ch of (chapters || [])) {
+            if (ch.id === id) return ch;
+            if (ch.children) {
+                const found = _findChapterById(ch.children, id);
+                if (found) return found;
+            }
+        }
+        return null;
     }
 
     function renderMobTOC() {
@@ -6601,10 +6889,14 @@ answer = সঠিক বিকল্পের index (0-3)`;
     function _aiConvKey() { return 'sp_ai_conversations'; }
 
     function loadAllConversations() {
-        try { return JSON.parse(localStorage.getItem(_aiConvKey()) || '[]'); } catch(e) { return []; }
+        try {
+            const raw = JSON.parse(localStorage.getItem(_aiConvKey()) || '[]');
+            // Filter out any entries missing a valid id
+            return raw.filter(c => c && c.id);
+        } catch(e) { return []; }
     }
     function saveAllConversations(convs) {
-        try { localStorage.setItem(_aiConvKey(), JSON.stringify(convs)); } catch(e) {}
+        try { localStorage.setItem(_aiConvKey(), JSON.stringify(convs.filter(c => c && c.id))); } catch(e) {}
     }
 
     function newAIChat() {
@@ -6622,25 +6914,27 @@ answer = সঠিক বিকল্পের index (0-3)`;
                 </div>
             </div>`;
         renderConversationsList();
-        closeAIChatSidebar();
     }
 
     function saveCurrentConversation() {
-        if (!aiChatHistory.length) return;
+        if (!aiChatHistory.length || !aiCurrentConvId) return;
         const convs = loadAllConversations();
         const idx = convs.findIndex(c => c.id === aiCurrentConvId);
-        const title = aiChatHistory[0]?.content?.substring(0, 40) || 'নতুন চ্যাট';
+        const title = aiChatHistory.find(m => m.role === 'user')?.content?.substring(0, 40) || 'নতুন চ্যাট';
         const conv = {
             id: aiCurrentConvId,
             title: title,
             provider: aiProvider,
             chapter: currentChapterNode?.title || '',
+            chapterId: currentChapterNode?.id || 'global',
             updatedAt: Date.now(),
             messages: aiChatHistory
         };
-        if (idx >= 0) convs[idx] = conv;
-        else convs.unshift(conv);
-        // Keep max 30 conversations
+        if (idx >= 0) {
+            convs[idx] = conv;
+        } else {
+            convs.unshift(conv);
+        }
         saveAllConversations(convs.slice(0, 30));
     }
 
@@ -6657,115 +6951,322 @@ answer = সঠিক বিকল্পের index (0-3)`;
         if (container) {
             container.innerHTML = '';
             aiChatHistory.forEach(m => _renderMessage(m.role, m.content, container));
+            container.scrollTop = container.scrollHeight;
         }
-        closeAIChatSidebar();
+        renderConversationsList();
     }
 
-    function deleteConversation(convId, e) {
-        e.stopPropagation();
-        const convs = loadAllConversations().filter(c => c.id !== convId);
-        saveAllConversations(convs);
-        if (aiCurrentConvId === convId) { aiCurrentConvId = null; newAIChat(); }
-        else renderConversationsList();
+    function showWarningModal({ title, desc, confirmLabel = 'মুছুন', onConfirm }) {
+        document.getElementById('modal-warning-title').textContent = title;
+        document.getElementById('modal-warning-desc').textContent = desc;
+        document.getElementById('modal-warning-confirm-label').textContent = confirmLabel;
+        const btn = document.getElementById('modal-warning-confirm-btn');
+        btn.onclick = () => { closeWarningModal(); onConfirm(); };
+        openModal('modal-warning');
+        lucide.createIcons();
+    }
+
+    function closeWarningModal() {
+        closeModal('modal-warning');
+    }
+
+    function deleteConversation(convId) {
+        showWarningModal({
+            title: 'কনভারসেশন মুছবেন?',
+            desc: 'এই চ্যাটটি স্থায়ীভাবে মুছে যাবে। পুনরুদ্ধার করা সম্ভব হবে না।',
+            confirmLabel: 'মুছুন',
+            onConfirm: () => {
+                const convs = loadAllConversations().filter(c => c.id !== convId);
+                saveAllConversations(convs);
+                if (aiCurrentConvId === convId) { aiCurrentConvId = null; newAIChat(); }
+                else renderConversationsList();
+            }
+        });
+    }
+
+    function clearAllConversations() {
+        showWarningModal({
+            title: 'সব চ্যাট মুছবেন?',
+            desc: 'এই টপিকের সমস্ত কনভারসেশন স্থায়ীভাবে মুছে যাবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।',
+            confirmLabel: 'সব মুছুন',
+            onConfirm: () => {
+                saveAllConversations([]);
+                aiCurrentConvId = null;
+                newAIChat();
+            }
+        });
     }
 
     function renderConversationsList() {
         const container = document.getElementById('ai-conversations-list');
         if (!container) return;
-        const convs = loadAllConversations();
+        // Auto-clean bad entries and re-save
+        const raw = (() => { try { return JSON.parse(localStorage.getItem(_aiConvKey()) || '[]'); } catch(e) { return []; } })();
+        const cleaned = raw.filter(c => c && c.id);
+        if (cleaned.length !== raw.length) saveAllConversations(cleaned);
+
+        // Only show conversations for the current chapter
+        const currentChapterId = currentChapterNode?.id || 'global';
+        const convs = cleaned
+            .filter(c => (c.chapterId || 'global') === currentChapterId)
+            .sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+
         if (!convs.length) {
             container.innerHTML = '<p class="text-center text-gray-400 text-xs py-8 px-4">এখনো কোনো চ্যাট নেই।<br>নতুন চ্যাট শুরু করুন।</p>';
             return;
         }
+        const now = new Date();
         container.innerHTML = convs.map(c => {
             const isActive = c.id === aiCurrentConvId;
             const date = new Date(c.updatedAt);
-            const dateStr = date.toLocaleDateString('bn-BD', {month:'short', day:'numeric'});
-            const provEmoji = c.provider === 'gemini' ? '🔵' : '🟠';
+            const isToday = date.toDateString() === now.toDateString();
+            const timeStr = date.toLocaleTimeString('bn-BD', {hour:'2-digit', minute:'2-digit'});
+            const dateStr = isToday
+                ? timeStr
+                : date.toLocaleDateString('bn-BD', {month:'short', day:'numeric'}) + ' ' + timeStr;
+            const provColor = c.provider === 'gemini' ? '#4285f4' : '#f97316';
+            const activeStyle = isActive
+                ? 'background:rgba(79,70,229,0.08); border-left:2px solid #4f46e5;'
+                : 'border-left:2px solid transparent;';
             return `
                 <div onclick="loadConversation('${c.id}')"
-                    class="mx-2 mb-1 px-3 py-2.5 rounded-xl cursor-pointer transition-all group flex items-start gap-2 ${isActive ? 'bg-indigo-50 dark:bg-indigo-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}">
-                    <span class="text-sm flex-shrink-0 mt-0.5">${provEmoji}</span>
+                    class="ai-conv-item group cursor-pointer flex items-center gap-2 px-2 py-1.5 transition-all"
+                    style="${activeStyle}"
+                    onmouseenter="if(!${isActive})this.style.background=document.documentElement.classList.contains('dark')?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)'"
+                    onmouseleave="if(!${isActive})this.style.background=''">
+                    <span style="width:6px;height:6px;border-radius:50%;background:${provColor};flex-shrink:0;margin-left:2px"></span>
                     <div class="flex-grow min-w-0">
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate ${isActive ? 'text-indigo-700 dark:text-indigo-300' : ''}">${c.title}</p>
-                        <p class="text-[10px] text-gray-400 mt-0.5 truncate">${c.chapter ? c.chapter + ' · ' : ''}${dateStr}</p>
+                        <p class="text-xs truncate ${isActive ? 'text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-gray-700 dark:text-gray-300 font-medium'}">${c.title}</p>
+                        <p class="text-[10px] text-gray-400 leading-none mt-0.5">${dateStr}</p>
                     </div>
-                    <button onclick="deleteConversation('${c.id}', event)"
-                        class="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 transition-all">
-                        <i data-lucide="x" class="h-3 w-3"></i>
+                    <button onclick="event.stopPropagation(); deleteConversation('${c.id}')" title="মুছুন"
+                        style="flex-shrink:0;padding:2px;border-radius:4px;border:none;background:transparent;cursor:pointer;opacity:0.3;transition:opacity 0.15s,color 0.15s;color:#9ca3af"
+                        onmouseenter="this.style.opacity='1';this.style.color='#ef4444'"
+                        onmouseleave="this.style.opacity='0.3';this.style.color='#9ca3af'">
+                        <i data-lucide="x" class="h-2.5 w-2.5"></i>
                     </button>
-                </div>`;
+                </div>
+                <div class="mx-3" style="height:1px;background:rgba(0,0,0,0.05)"></div>`;
         }).join('');
         lucide.createIcons();
     }
 
+    let _aiSidebarCollapsed = false;
+
     function openAIChatSidebar() {
-        saveCurrentConversation();
         renderConversationsList();
-        const sidebar = document.getElementById('ai-chat-sidebar');
-        if (sidebar) { sidebar.style.display = 'flex'; }
+        const sidebar = document.getElementById('ai-chat-sidebar-inline');
+        if (sidebar) {
+            sidebar.style.display = 'flex';
+            sidebar.style.width = '160px';
+            sidebar.style.minWidth = '160px';
+            _aiSidebarCollapsed = false;
+            sidebar.querySelectorAll('.ai-sidebar-label').forEach(el => el.style.display = '');
+        }
+        _updateSidebarToggleBtnStyle();
         lucide.createIcons();
     }
+
     function closeAIChatSidebar() {
-        const sidebar = document.getElementById('ai-chat-sidebar');
-        if (sidebar) sidebar.style.display = 'none';
+        // Collapse sidebar width to 0 — chat stays visible
+        _aiSidebarCollapsed = true;
+        const sidebar = document.getElementById('ai-chat-sidebar-inline');
+        if (sidebar) {
+            sidebar.style.width = '0px';
+            sidebar.style.minWidth = '0px';
+            sidebar.querySelectorAll('.ai-sidebar-label').forEach(el => el.style.display = 'none');
+        }
+        _updateSidebarToggleBtnStyle();
+    }
+
+    function toggleAIChatSidebar() {
+        if (_aiSidebarCollapsed) {
+            openAIChatSidebar();
+        } else {
+            closeAIChatSidebar();
+        }
+    }
+
+    function _updateSidebarToggleBtnStyle() {
+        const btn = document.getElementById('ai-sidebar-toggle-btn');
+        if (!btn) return;
+        if (!_aiSidebarCollapsed) {
+            btn.classList.add('text-indigo-600', 'border-indigo-400', 'bg-indigo-50');
+        } else {
+            btn.classList.remove('text-indigo-600', 'border-indigo-400', 'bg-indigo-50');
+        }
     }
 
     // ════════════════════════════════════════════
     // QnA Tab — inline MCQ panel
     // ════════════════════════════════════════════
-    let _qnaMCQCustomSource = null; // null = chapter text, string = custom
+    let _qnaMCQCustomSource = null;
+    let _manualInputMode = 'json';
 
     function openQnaMCQPanel() {
-        const panel = document.getElementById('qna-mcq-panel');
-        if (!panel) return;
-        panel.classList.remove('hidden');
-        // Reset toggle
-        const toggle = document.getElementById('qna-mcq-custom-src-toggle');
-        if (toggle) toggle.checked = _qnaMCQCustomSource !== null;
-        updateQnaMCQSrcHint();
+        // Always reset to import screen before opening
+        document.getElementById('mcq-screen-import')?.classList.remove('hidden');
+        document.getElementById('mcq-screen-quiz')?.classList.add('hidden');
+        document.getElementById('mcq-timer-bar')?.classList.add('hidden');
+        const mb = document.getElementById('mcq-modal-body');
+        if (mb) mb.innerHTML = '';
+        switchMCQModalTab('ai');
+        openModal('modal-mcq');
         lucide.createIcons();
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function toggleQnaMCQCustomSrc(checked) {
-        const editBtn = document.getElementById('qna-mcq-edit-src-btn');
-        if (!checked) {
-            _qnaMCQCustomSource = null;
-            if (editBtn) editBtn.classList.add('hidden');
-        } else {
-            // Pre-fill with chapter text if not set
-            if (_qnaMCQCustomSource === null) {
-                _qnaMCQCustomSource = (currentChapterNode?.content?.text || '').trim();
-            }
-            if (editBtn) { editBtn.classList.remove('hidden'); lucide.createIcons(); }
-        }
-        updateQnaMCQSrcHint();
+    function showMCQImportScreen() {
+        const imp = document.getElementById('mcq-screen-import');
+        const quiz = document.getElementById('mcq-screen-quiz');
+        if (imp) imp.style.display = '';
+        if (quiz) quiz.style.display = 'none';
+        document.getElementById('mcq-timer-bar')?.classList.add('hidden');
+        switchMCQModalTab('ai');
+        stopInlineTimer();
+        stopPopupTimer();
     }
 
-    function updateQnaMCQSrcHint() {
-        const hint = document.getElementById('qna-mcq-src-hint');
-        if (!hint) return;
-        if (_qnaMCQCustomSource !== null) {
-            const tok = Math.round(_qnaMCQCustomSource.length / 3.5);
-            hint.textContent = `কাস্টম (~${tok} token)`;
-            hint.style.color = '#d97706';
+    function showMCQQuizScreen(title) {
+        const imp = document.getElementById('mcq-screen-import');
+        const quiz = document.getElementById('mcq-screen-quiz');
+        if (imp) imp.style.display = 'none';
+        if (quiz) { quiz.style.display = 'flex'; quiz.style.flexDirection = 'column'; }
+        if (title && document.getElementById('mcq-modal-title'))
+            document.getElementById('mcq-modal-title').textContent = title;
+    }
+
+    function switchMCQModalTab(tab) {
+        const aiDiv = document.getElementById('mcq-modal-ai');
+        const manualDiv = document.getElementById('mcq-modal-manual');
+        const btnAI = document.getElementById('mcq-modal-tab-ai');
+        const btnManual = document.getElementById('mcq-modal-tab-manual');
+        const active = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm transition';
+        const inactive = 'flex-1 py-1.5 text-xs font-medium rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 transition';
+        if (tab === 'ai') {
+            aiDiv?.classList.remove('hidden');
+            manualDiv?.classList.add('hidden');
+            if (btnAI) btnAI.className = active;
+            if (btnManual) btnManual.className = inactive;
         } else {
-            const len = currentChapterNode?.content?.text?.length || 0;
-            hint.textContent = len ? `অধ্যায়ের লেখা (~${Math.round(len/3.5)} token)` : '⚠️ লেখা নেই';
-            hint.style.color = len ? '#6b7280' : '#f59e0b';
+            manualDiv?.classList.remove('hidden');
+            aiDiv?.classList.add('hidden');
+            if (btnManual) btnManual.className = active;
+            if (btnAI) btnAI.className = inactive;
         }
+    }
+
+    function switchManualInputMode(mode) {
+        _manualInputMode = mode;
+        const jsonBtn = document.getElementById('manual-mode-json');
+        const simpleBtn = document.getElementById('manual-mode-simple');
+        const jsonHint = document.getElementById('manual-hint-json');
+        const simpleHint = document.getElementById('manual-hint-simple');
+        if (mode === 'json') {
+            jsonBtn?.classList.replace('bg-gray-200','bg-indigo-600');
+            jsonBtn?.classList.replace('dark:bg-gray-700','dark:bg-indigo-600');
+            jsonBtn?.classList.replace('text-gray-600','text-white');
+            jsonBtn?.classList.replace('dark:text-gray-300','dark:text-white');
+            simpleBtn?.classList.replace('bg-indigo-600','bg-gray-200');
+            simpleBtn?.classList.add('dark:bg-gray-700','text-gray-600','dark:text-gray-300');
+            simpleBtn?.classList.remove('text-white','dark:text-white');
+            jsonHint?.classList.remove('hidden');
+            simpleHint?.classList.add('hidden');
+        } else {
+            simpleBtn?.classList.add('bg-indigo-600','text-white');
+            simpleBtn?.classList.remove('bg-gray-200','dark:bg-gray-700','text-gray-600','dark:text-gray-300');
+            jsonBtn?.classList.remove('bg-indigo-600','text-white');
+            jsonBtn?.classList.add('bg-gray-200','dark:bg-gray-700','text-gray-600','dark:text-gray-300');
+            simpleHint?.classList.remove('hidden');
+            jsonHint?.classList.add('hidden');
+        }
+    }
+
+    function fillMCQSourceFromChapter() {
+        const ta = document.getElementById('qna-mcq-source-textarea');
+        if (!ta) return;
+        ta.value = (currentChapterNode?.content?.text || '').substring(0, 3000);
+        updateMCQSrcToken();
+    }
+
+    function updateMCQSrcToken() {
+        const ta = document.getElementById('qna-mcq-source-textarea');
+        const hint = document.getElementById('qna-mcq-src-token');
+        if (ta && hint) hint.textContent = `~${Math.round(ta.value.length/3.5)} token`;
+    }
+
+    function importManualMCQ() {
+        const ta = document.getElementById('qna-mcq-manual-textarea');
+        if (!ta || !ta.value.trim()) { alert('MCQ লিখুন বা পেস্ট করুন।'); return; }
+        let qs = [];
+        if (_manualInputMode === 'json') {
+            try {
+                let raw = ta.value.trim().replace(/```json\s*/gi,'').replace(/```/g,'').trim();
+                const m = raw.match(/\{[\s\S]*\}/);
+                if (m) raw = m[0];
+                const parsed = JSON.parse(raw);
+                qs = Array.isArray(parsed.questions) ? parsed.questions : [];
+            } catch(e) { alert('JSON ফরম্যাট ভুল আছে। আবার চেক করুন।'); return; }
+        } else {
+            // Simple format parser — flexible
+            const answerMap = {'ক':0,'খ':1,'গ':2,'ঘ':3,'a':0,'b':1,'c':2,'d':3};
+            const blocks = ta.value.trim().split(/\n\s*\n+/);
+            blocks.forEach(block => {
+                const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
+                if (lines.length < 2) return;
+
+                // Question: first line, remove "প্রশ্ন:" prefix if present
+                let qText = lines[0].replace(/^প্রশ্ন\s*[:\-]\s*/i, '').trim();
+
+                let opts = [], answer = 0;
+
+                // Find options line (contains ক) খ) গ) ঘ)  — same line or separate lines)
+                const allText = lines.slice(1).join('\n');
+
+                // Try same-line format: split by lookahead of ক) খ) গ) ঘ)
+                const optLine = lines.find(l => /[কখগঘ]\s*\)/.test(l) && !/^উত্তর/i.test(l));
+                if (optLine) {
+                    const parts = optLine.split(/(?=[কখগঘ]\s*\))/).map(s => s.trim()).filter(Boolean);
+                    if (parts.length >= 2) {
+                        opts = parts;
+                    }
+                }
+
+                // Fallback: each line is one option
+                if (opts.length < 2) {
+                    lines.slice(1).forEach(line => {
+                        if (/^[কখগঘ]\s*\)/.test(line) && !/^উত্তর/i.test(line)) opts.push(line.trim());
+                    });
+                }
+
+                // Extract answer
+                const ansLine = lines.find(l => /^উত্তর\s*[:\-]/i.test(l));
+                if (ansLine) {
+                    const ans = ansLine.replace(/^উত্তর\s*[:\-]\s*/i,'').trim();
+                    answer = answerMap[ans.charAt(0)] ?? 0;
+                }
+
+                if (qText && opts.length >= 2) qs.push({ q: qText, options: opts, answer });
+            });
+            if (!qs.length) { alert('ফরম্যাট ঠিক নেই। উদাহরণ দেখুন।'); return; }
+        }
+        if (!qs.length) { alert('কোনো প্রশ্ন পাওয়া যায়নি।'); return; }
+        saveQuizToHistory(qs, currentChapterNode?.title, currentSubject?.name, 'manual');
+        resultEl.classList.remove('hidden');
+        renderInlineMCQ(qs, resultEl);
+        renderQnaMCQHistory();
+        ta.value = '';
+        alert(`✅ ${qs.length}টি MCQ সফলভাবে যোগ হয়েছে!`);
     }
 
     async function generateMCQFromQna(count) {
         const apiKey = getAIApiKey();
         if (!apiKey) { alert('AI টিউটর ট্যাবে API Key দিন।'); return; }
-        const srcText = _qnaMCQCustomSource !== null
-            ? _qnaMCQCustomSource
-            : (currentChapterNode?.content?.text || '').substring(0, 3000);
-        if (!srcText.trim()) { alert('MCQ তৈরির জন্য সোর্স টেক্সট দরকার।'); return; }
+        const ta = document.getElementById('qna-mcq-source-textarea');
+        const srcText = (ta?.value || '').trim();
+        if (!srcText) { alert('সোর্স টেক্সট বক্সে কিছু লিখুন বা "অধ্যায় থেকে নিন" বাটন চাপুন।'); return; }
 
-        const resultEl = document.getElementById('qna-mcq-result');
+        openModal('modal-mcq');
+        const resultEl = document.getElementById('mcq-modal-body');
         resultEl.classList.remove('hidden');
         const provEmoji = AI_PROVIDERS[aiProvider]?.emoji || '';
         resultEl.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-3">
@@ -6774,13 +7275,11 @@ answer = সঠিক বিকল্পের index (0-3)`;
         </div>`;
         resultEl.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
-        const prompt = `তুমি একজন অভিজ্ঞ শিক্ষক। নিচের তথ্য থেকে ঠিক ${count}টি MCQ প্রশ্ন তৈরি করো।
-বিষয়: ${currentSubject?.name || 'অজানা'}
-অধ্যায়: ${currentChapterNode?.title || ''}
-${srcText ? 'বিষয়বস্তু:\n' + srcText : '(সাধারণ জ্ঞান থেকে প্রশ্ন করো)'}
+        const prompt = `নিচের তথ্য থেকে ঠিক ${count}টি MCQ প্রশ্ন তৈরি করো।
+বিষয়বস্তু: ${srcText || '(সাধারণ জ্ঞান থেকে প্রশ্ন করো)'}
 
 শুধুমাত্র নিচের JSON ফরম্যাটে উত্তর দাও, অন্য কিছু লিখবে না:
-{"questions":[{"q":"প্রশ্ন","options":["ক) বিকল্প১","খ) বিকল্প২","গ) বিকল্প৩","ঘ) বিকল্প৪"],"answer":0,"explain":"ব্যাখ্যা"}]}
+{"questions":[{"q":"প্রশ্ন","options":["ক) বিকল্প১","খ) বিকল্প২","গ) বিকল্প৩","ঘ) বিকল্প৪"],"answer":0}]}
 answer = সঠিক বিকল্পের index (0-3)`;
 
         try {
@@ -6831,7 +7330,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
             resultEl.innerHTML = `<div class="flex flex-col items-center py-8 gap-3">
                 <div class="text-3xl">❌</div>
                 <p class="text-sm text-red-500 text-center px-4">${err.message || 'প্রশ্ন তৈরিতে সমস্যা হয়েছে।'}</p>
-                <button onclick="document.getElementById('qna-mcq-result').classList.add('hidden')" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 transition">বন্ধ করুন</button>
+                <button onclick="closeModal('modal-mcq')" class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 transition">বন্ধ করুন</button>
             </div>`;
             lucide.createIcons();
         }
@@ -6864,18 +7363,40 @@ answer = সঠিক বিকল্পের index (0-3)`;
                     class="mt-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl text-base transition shadow-lg">
                     ▶ শুরু করুন
                 </button>
-                <button onclick="document.getElementById('qna-mcq-result').classList.add('hidden')" class="text-xs text-gray-400 hover:text-red-500 transition">বাতিল করুন</button>
+                <button onclick="closeModal('modal-mcq')" class="text-xs text-gray-400 hover:text-red-500 transition">বাতিল করুন</button>
             </div>`;
     }
 
     let _inlineTimer = null;
 
-    function startInlineMCQTest(questions) {
+    // Shuffle options, return {options, answer} with corrected answer index
+    function shuffleOptions(q) {
+        const prefixes = ['ক)', 'খ)', 'গ)', 'ঘ)'];
+        // Strip prefix to get clean text
+        const rawOpts = (q.options || []).map(o => o.replace(/^[কখগঘ]\s*\)\s*/, '').trim());
+        const correctText = rawOpts[q.answer];
+        // Fisher-Yates shuffle on raw text
+        for (let i = rawOpts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rawOpts[i], rawOpts[j]] = [rawOpts[j], rawOpts[i]];
+        }
+        // Re-add prefixes
+        const shuffled = rawOpts.map((t, i) => `${prefixes[i]} ${t}`);
+        return { options: shuffled, answer: rawOpts.indexOf(correctText) };
+    }
+
+        function startInlineMCQTest(questions) {
         _inlineScore = 0;
         _inlineAnswered = 0;
         const total = questions.length;
         let secsLeft = total * 60;
-        const resultEl = document.getElementById('qna-mcq-result');
+        openModal('modal-mcq');
+        showMCQQuizScreen(currentChapterNode?.title ? 'MCQ: ' + currentChapterNode.title : 'MCQ কুইজ');
+        // Hide input tabs during quiz
+        document.getElementById('mcq-modal-tabs')?.classList.add('hidden');
+        document.getElementById('mcq-modal-ai')?.classList.add('hidden');
+        document.getElementById('mcq-modal-manual')?.classList.add('hidden');
+        const resultEl = document.getElementById('mcq-modal-body');
 
         resultEl.innerHTML = `
             <div class="px-4 pt-3 pb-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
@@ -6886,23 +7407,23 @@ answer = সঠিক বিকল্পের index (0-3)`;
                         <span>⏱️</span>
                         <span id="inline-timer-display" class="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono"></span>
                     </div>
-                    <button onclick="stopInlineTimer();document.getElementById('qna-mcq-result').classList.add('hidden')" class="text-[10px] text-gray-400 hover:text-red-500 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition">✕ বন্ধ</button>
+                    <button onclick="stopInlineTimer();closeModal('modal-mcq')" class="text-[10px] text-gray-400 hover:text-red-500 px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition">✕ বন্ধ</button>
                 </div>
             </div>
             <div class="p-4 space-y-4" id="inline-mcq-list"></div>`;
 
         const list = resultEl.querySelector('#inline-mcq-list');
         questions.forEach((q, qi) => {
+            const {options: sOpts, answer: sAns} = shuffleOptions(q);
             const div = document.createElement('div');
             div.className = 'p-3 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700';
             div.innerHTML = `
                 <p class="font-semibold text-gray-800 dark:text-gray-100 mb-2 text-sm leading-relaxed">${qi+1}. ${q.q}</p>
                 <div class="space-y-1.5" id="inline-opts-${qi}">
-                    ${(q.options||[]).map((opt,oi)=>`
+                    ${sOpts.map((opt,oi)=>`
                     <div class="mcq-option px-3 py-2 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 border-2 border-gray-200 dark:border-gray-600 cursor-pointer select-none"
-                         onclick="selectInlineMCQ(${qi},${oi},${q.answer},'${(q.explain||'').replace(/'/g,"\\'").replace(/\n/g,' ')}',${total})">${opt}</div>`).join('')}
-                </div>
-                <div id="inline-explain-${qi}" class="hidden mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300"></div>`;
+                         onclick="selectInlineMCQ(${qi},${oi},${sAns},${total})">${opt}</div>`).join('')}
+                </div>`;
             list.appendChild(div);
         });
 
@@ -6946,10 +7467,8 @@ answer = সঠিক বিকল্পের index (0-3)`;
                 optsEl.dataset.answered = 'timeout';
                 optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
                     el.style.pointerEvents = 'none';
-                    if (i === q.answer) { el.style.borderColor='#16a34a'; el.style.background='#dcfce7'; }
+                    if (i === q.answer) { el.classList.add('correct'); }
                 });
-                const exp = document.getElementById(`inline-explain-${qi}`);
-                if (exp && q.explain) { exp.textContent = '💡 ' + q.explain; exp.classList.remove('hidden'); }
             }
         });
         const list = document.getElementById('inline-mcq-list');
@@ -6969,19 +7488,17 @@ answer = সঠিক বিকল্পের index (0-3)`;
     let _inlineScore = 0;
     let _inlineAnswered = 0;
 
-    function selectInlineMCQ(qi, selectedIdx, correctIdx, explain, total) {
+    function selectInlineMCQ(qi, selectedIdx, correctIdx, total) {
         const optsEl = document.getElementById(`inline-opts-${qi}`);
         if (!optsEl || optsEl.dataset.answered) return;
         optsEl.dataset.answered = '1';
         optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
             el.style.pointerEvents = 'none';
-            if (i === correctIdx) { el.style.borderColor='#16a34a'; el.style.background='#dcfce7'; }
-            else if (i === selectedIdx) { el.style.borderColor='#dc2626'; el.style.background='#fee2e2'; }
+            if (i === correctIdx) { el.classList.add('correct'); }
+            else if (i === selectedIdx) { el.classList.add('wrong'); }
         });
         if (selectedIdx === correctIdx) _inlineScore++;
         _inlineAnswered++;
-        const explainEl = document.getElementById(`inline-explain-${qi}`);
-        if (explainEl && explain) { explainEl.textContent = '💡 ' + explain; explainEl.classList.remove('hidden'); }
         const scoreBadge = document.getElementById('inline-mcq-score');
         if (scoreBadge) scoreBadge.textContent = `স্কোর: ${_inlineScore}/${total}`;
         if (_inlineAnswered >= total) {
@@ -7017,7 +7534,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
         container.innerHTML = `
             <div class="px-4 pt-4 pb-2">
                 <div class="flex items-center gap-2 mb-3">
-                    <span class="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">🧠 AI MCQ ইতিহাস</span>
+                    <span class="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wide">🧠 MCQ ইতিহাস</span>
                     <span class="text-[10px] text-gray-400">(${chQuizzes.length}টি সেশন)</span>
                 </div>
                 ${Object.entries(grouped).map(([date, quizzes]) => `
@@ -7028,18 +7545,32 @@ answer = সঠিক বিকল্পের index (0-3)`;
                         <div class="space-y-1.5">
                             ${quizzes.map(q => {
                                 const time = new Date(q.createdAt).toLocaleTimeString('bn-BD', {hour:'2-digit', minute:'2-digit'});
-                                const provEmoji = q.provider === 'gemini' ? '🔵' : '🟠';
-                                return `<div class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 border border-gray-100 dark:border-gray-700">
-                                    <div class="flex items-center gap-2 min-w-0">
+                                const provEmoji = q.provider === 'gemini' ? '🔵' : q.provider === 'manual' ? '✍️' : '🟠';
+                                return `<div class="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 border border-gray-100 dark:border-gray-700">
+                                    <div class="flex items-center gap-2 min-w-0 flex-1">
                                         <span class="text-base">${provEmoji}</span>
-                                        <div class="min-w-0">
-                                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${q.count}টি প্রশ্ন</span>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 cursor-pointer hover:text-indigo-500 transition"
+                                                onclick="renameQuiz('${q.id}', this)"
+                                                title="নাম পরিবর্তন করতে ক্লিক করুন">${q.name || q.count + 'টি প্রশ্ন'}</span>
                                             <span class="text-[10px] text-gray-400 ml-1.5">${time}</span>
                                         </div>
                                     </div>
                                     <button onclick="openTimedQuiz('${q.id}')"
-                                        class="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white text-[11px] font-semibold rounded-lg transition">
+                                        class="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-[11px] font-semibold rounded-lg transition">
                                         <i data-lucide="play" class="h-3 w-3"></i> টেস্ট
+                                    </button>
+                                    <button onclick="viewMCQAsTestPaper('${q.id}')"
+                                        class="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold rounded-lg transition">
+                                        <i data-lucide="book-open" class="h-3 w-3"></i> পড়ুন
+                                    </button>
+                                    <button onclick="exportQuiz('${q.id}')"
+                                        class="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-semibold rounded-lg transition">
+                                        <i data-lucide="download" class="h-3 w-3"></i>
+                                    </button>
+                                    <button onclick="deleteQuiz('${q.id}')"
+                                        class="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-[11px] font-semibold rounded-lg transition">
+                                        <i data-lucide="trash-2" class="h-3 w-3"></i>
                                     </button>
                                 </div>`;
                             }).join('')}
@@ -7050,9 +7581,109 @@ answer = সঠিক বিকল্পের index (0-3)`;
         lucide.createIcons();
     }
 
+    function renameQuiz(quizId, el) {
+        const current = el.textContent.trim();
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = current;
+        input.className = 'text-xs font-semibold bg-transparent border-b border-indigo-400 outline-none text-gray-700 dark:text-gray-200 w-32';
+        el.replaceWith(input);
+        input.focus();
+        input.select();
+        const save = () => {
+            const newName = input.value.trim();
+            if (newName) {
+                const quizzes = loadSavedQuizzes();
+                const quiz = quizzes.find(q => q.id === quizId);
+                if (quiz) {
+                    quiz.name = newName;
+                    try { localStorage.setItem(_savedQuizzesKey(), JSON.stringify(quizzes)); } catch(e) {}
+                }
+            }
+            renderQnaMCQHistory();
+        };
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderQnaMCQHistory(); });
+    }
+
+    function deleteQuiz(quizId) {
+        showWarningModal({
+            title: 'টেস্ট পেপার মুছবেন?',
+            desc: 'এই MCQ সেশনটি স্থায়ীভাবে মুছে যাবে। পুনরুদ্ধার করা সম্ভব হবে না।',
+            confirmLabel: 'মুছুন',
+            onConfirm: () => {
+                const quizzes = loadSavedQuizzes().filter(q => q.id !== quizId);
+                try { localStorage.setItem(_savedQuizzesKey(), JSON.stringify(quizzes)); } catch(e) {}
+                renderQnaMCQHistory();
+                document.getElementById('qna-mcq-testpaper')?.classList.add('hidden');
+            }
+        });
+    }
+
+    function exportQuiz(quizId) {
+        const quiz = loadSavedQuizzes().find(q => q.id === quizId);
+        if (!quiz) return;
+        // Export as simple text format
+        const lines = quiz.questions.map((q, i) => {
+            const optLine = (q.options || []).join(' ');
+            const answerKey = ['ক','খ','গ','ঘ'][q.answer] || 'ক';
+            return `প্রশ্ন: ${q.q}\n${optLine}\nউত্তর: ${answerKey}`;
+        }).join('\n\n');
+        const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mcq_${quiz.chapter || 'export'}_${quiz.count}q.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     // ════════════════════════════════════════════
-    // Timed MCQ Quiz
     // ════════════════════════════════════════════
+    // MCQ Test Paper View (List only)
+    // ════════════════════════════════════════════
+    let _testPaperQuestions = [];
+    let _testPaperChapterId = null;
+    let _testPaperName = '';
+
+    function viewMCQAsTestPaper(quizId) {
+        const quizzes = loadSavedQuizzes();
+        const quiz = quizzes.find(q => q.id === quizId);
+        if (!quiz) return;
+        _testPaperQuestions = quiz.questions || [];
+        _testPaperChapterId = currentChapterNode?.id || null;
+        _testPaperName = quiz.name || '';
+        renderTestPaper();
+        const el = document.getElementById('qna-mcq-testpaper');
+        if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    function renderTestPaper() {
+        const container = document.getElementById('qna-mcq-testpaper');
+        if (!container) return;
+        const qs = _testPaperQuestions;
+        const total = qs.length;
+        const headerLabel = _testPaperName ? `📋 ${_testPaperName}` : `📋 টেস্ট পেপার · ${total}টি প্রশ্ন`;
+        container.classList.remove('hidden');
+        container.innerHTML = `
+            <div class="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-2.5 flex items-center justify-between">
+                <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">${headerLabel}</span>
+                <button onclick="document.getElementById('qna-mcq-testpaper').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition text-xs">✕</button>
+            </div>
+            <div style="${window.innerWidth >= 768 ? 'display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;' : 'display:flex;flex-direction:column;gap:1rem;'}" class="p-4">
+                ${qs.map((q, qi) => `
+                <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 dark:bg-gray-800 px-4 py-2.5">
+                        <span class="text-xs font-bold text-indigo-500 mr-2">${qi+1}.</span>
+                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">${q.q}</span>
+                    </div>
+                    <div class="px-4 py-2 grid grid-cols-2 gap-1.5">
+                        ${(q.options||[]).map((opt, oi) => `
+                        <div class="px-3 py-1.5 rounded-lg text-xs border ${oi === q.answer ? 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/20 font-semibold text-green-700 dark:text-green-300' : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800/50 text-gray-700 dark:text-gray-300'}">${opt}</div>`).join('')}
+                    </div>
+                </div>`).join('')}
+            </div>`;
+    }
     let _mcqTimer = null;
     let _mcqTimerSecondsLeft = 0;
 
@@ -7065,9 +7696,9 @@ answer = সঠিক বিকল্পের index (0-3)`;
         mcqAnswered  = 0;
         mcqScore     = 0;
 
-        document.getElementById('mcq-modal-title').textContent = `MCQ টেস্ট — ${quiz.count}টি প্রশ্ন`;
-        renderMCQQuestionsWithTimer(quiz.count);
         openModal('modal-mcq');
+        showMCQQuizScreen(`MCQ: ${quiz.count}টি প্রশ্ন`);
+        renderMCQQuestionsWithTimer(quiz.count);
     }
 
     function renderMCQQuestionsWithTimer(totalQuestions) {
@@ -7082,21 +7713,29 @@ answer = সঠিক বিকল্পের index (0-3)`;
         const scoreBadge = document.getElementById('mcq-score-badge');
         if (scoreBadge) scoreBadge.textContent = `স্কোর: ০/${totalQuestions}`;
 
-        body.innerHTML = `<div class="space-y-5" id="mcq-questions-list"></div>`;
+        body.innerHTML = `<div id="mcq-questions-list" style="padding:0.5rem"></div>`;
 
+        // Apply 2-column grid after DOM insert
         const list = document.getElementById('mcq-questions-list');
+        if (window.innerWidth >= 768) {
+            list.style.display = 'grid';
+            list.style.gridTemplateColumns = '1fr 1fr';
+            list.style.gap = '1rem';
+        }
+
         mcqQuestions.forEach((q, qi) => {
+            const {options: sOpts, answer: sAns} = shuffleOptions(q);
+            q._shuffledAnswer = sAns;
             const div = document.createElement('div');
-            div.className = 'p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700';
+            div.className = 'p-4 bg-gray-50 dark:bg-gray-800/60 rounded-xl border border-gray-100 dark:border-gray-700 mb-4';
             div.id = `mcq-q-${qi}`;
             div.innerHTML = `
                 <p class="font-semibold text-gray-800 dark:text-gray-100 mb-3 text-sm leading-relaxed">${qi+1}. ${q.q}</p>
                 <div class="space-y-2" id="mcq-opts-${qi}">
-                    ${(q.options||[]).map((opt, oi) => `
+                    ${sOpts.map((opt, oi) => `
                         <div class="mcq-option px-3 py-2.5 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 border-2 border-gray-200 dark:border-gray-600 cursor-pointer select-none"
                              onclick="selectMCQOption(${qi}, ${oi})">${opt}</div>`).join('')}
-                </div>
-                <div id="mcq-explain-${qi}" class="hidden mt-2 p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300 leading-relaxed"></div>`;
+                </div>`;
             list.appendChild(div);
         });
 
@@ -7136,14 +7775,13 @@ answer = সঠিক বিকল্পের index (0-3)`;
         document.querySelectorAll('[id^="mcq-opts-"]').forEach(optsEl => {
             if (!optsEl.dataset.answered) {
                 optsEl.dataset.answered = 'timeout';
-                optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
-                    el.style.pointerEvents = 'none';
                     const qi = parseInt(optsEl.id.replace('mcq-opts-', ''));
                     const q = mcqQuestions[qi];
-                    if (q && i === q.answer) { el.classList.add('correct'); el.style.borderColor = '#16a34a'; el.style.background = '#dcfce7'; }
-                    const explain = document.getElementById(`mcq-explain-${qi}`);
-                    if (explain && q?.explain) { explain.textContent = '💡 ' + q.explain; explain.classList.remove('hidden'); }
-                });
+                    const correctIdx = (q && q._shuffledAnswer !== undefined) ? q._shuffledAnswer : q?.answer;
+                    optsEl.querySelectorAll('.mcq-option').forEach((el, i) => {
+                        el.style.pointerEvents = 'none';
+                        if (q && i === correctIdx) { el.classList.add('correct'); }
+                    });
             }
         });
         const list = document.getElementById('mcq-questions-list');
@@ -7165,13 +7803,13 @@ answer = সঠিক বিকল্পের index (0-3)`;
         try { return JSON.parse(localStorage.getItem(_savedQuizzesKey()) || '[]'); } catch(e) { return []; }
     }
 
-    function saveQuizToHistory(questions, chapterTitle, subjectName) {
+    function saveQuizToHistory(questions, chapterTitle, subjectName, provider) {
         const quizzes = loadSavedQuizzes();
         quizzes.unshift({
             id: 'quiz_' + Date.now(),
             chapter: chapterTitle || 'অজানা অধ্যায়',
             subject: subjectName || '',
-            provider: aiProvider,
+            provider: provider || aiProvider,
             count: questions.length,
             createdAt: Date.now(),
             questions: questions
@@ -7275,6 +7913,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
         const prov = AI_PROVIDERS[aiProvider];
         const keys = loadApiKeys(aiProvider);
         const activeId = getActiveKeyId(aiProvider);
+        const isGemini = aiProvider === 'gemini';
 
         banner.innerHTML = `
             <div class="flex items-center justify-between mb-2">
@@ -7283,21 +7922,145 @@ answer = সঠিক বিকল্পের index (0-3)`;
             </div>
             ${keys.length ? `<div class="space-y-1.5 mb-2 max-h-32 overflow-y-auto">
                 ${keys.map(k => `
-                    <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg ${k.id===activeId ? 'bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'}">
-                        <button onclick="switchApiKey('${k.id}')" class="flex-grow text-left">
-                            <span class="text-xs font-semibold ${k.id===activeId ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-300'}">${k.label}</span>
-                            <span class="text-[10px] text-gray-400 ml-1">${k.key.substring(0,8)}…</span>
-                            ${k.id===activeId ? '<span class="text-[10px] text-green-600 ml-1">● সক্রিয়</span>' : ''}
-                        </button>
-                        <button onclick="deleteApiKey('${k.id}')" class="text-gray-300 hover:text-red-500 transition"><i data-lucide="x" class="h-3 w-3"></i></button>
+                    <div id="key-row-${k.id}">
+                        <div class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg ${k.id===activeId ? 'bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'}">
+                            <button onclick="switchApiKey('${k.id}')" class="flex-grow text-left min-w-0">
+                                <span class="text-xs font-semibold ${k.id===activeId ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-300'}">${k.label}</span>
+                                <span class="text-[10px] text-gray-400 ml-1">${k.key.substring(0,8)}…</span>
+                                ${k.id===activeId ? '<span class="text-[10px] text-green-600 ml-1">● সক্রিয়</span>' : ''}
+                            </button>
+                            <button onclick="editApiKey('${k.id}')" title="এডিট" class="flex-shrink-0 p-1 rounded text-gray-400 hover:text-amber-500 transition"><i data-lucide="pencil" class="h-3 w-3"></i></button>
+                            <button onclick="deleteApiKey('${k.id}')" title="মুছুন" class="flex-shrink-0 p-1 rounded text-gray-300 hover:text-red-500 transition"><i data-lucide="x" class="h-3 w-3"></i></button>
+                        </div>
+                        <!-- Inline edit form (hidden by default) -->
+                        <div id="key-edit-${k.id}" class="hidden mt-1 flex gap-1.5 px-1">
+                            <input type="text" id="edit-label-${k.id}" value="${k.label}" placeholder="নাম" class="w-20 px-2 py-1 text-xs border border-amber-300 dark:border-amber-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400">
+                            <div class="flex-grow relative">
+                                <input type="text" id="edit-key-${k.id}" value="${k.key}" placeholder="API Key" class="w-full pr-7 px-2 py-1 text-xs border border-amber-300 dark:border-amber-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400 font-mono">
+                                <button type="button" onclick="toggleKeyVisibility('edit-key-${k.id}', this)" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i data-lucide="eye-off" class="h-3 w-3"></i>
+                                </button>
+                            </div>
+                            <button onclick="saveEditedApiKey('${k.id}')" class="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg transition font-semibold flex-shrink-0">সেভ</button>
+                            <button onclick="cancelEditApiKey('${k.id}')" class="px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-600 dark:text-gray-300 text-xs rounded-lg transition flex-shrink-0">বাতিল</button>
+                        </div>
                     </div>`).join('')}
             </div>` : `<p class="text-xs text-gray-400 mb-2">কোনো key সংরক্ষিত নেই।<br><span class="text-[10px]">💡 ${prov.keyHint}</span></p>`}
             <div class="flex gap-1.5">
                 <input type="text" id="api-key-label-input" placeholder="নাম (যেমন: Key 1)" class="w-20 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400">
-                <input type="password" id="api-key-value-input" placeholder="${prov.keyPlaceholder}" class="flex-grow px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400">
+                <div class="relative flex-grow">
+                    <input type="password" id="api-key-value-input" placeholder="${prov.keyPlaceholder}" class="w-full pr-7 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400">
+                    <button type="button" onclick="toggleKeyVisibility('api-key-value-input', this)" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <i data-lucide="eye" class="h-3 w-3"></i>
+                    </button>
+                </div>
                 <button onclick="addApiKey()" class="px-2.5 py-1 bg-amber-600 text-white text-xs rounded-lg hover:bg-amber-700 transition font-semibold flex-shrink-0">যোগ করুন</button>
-            </div>`;
+            </div>
+            ${isGemini ? `
+            <div class="mt-2 pt-2 border-t border-amber-200 dark:border-amber-700">
+                <button id="btn-load-gemini-models" onclick="fetchGeminiModels()" class="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">
+                    <i data-lucide="refresh-cw" class="h-3 w-3"></i> মডেল লোড করুন
+                </button>
+                <p class="text-[10px] text-gray-400 mt-1 text-center">API Key যোগ করে বাটনে চাপলে সাপোর্টেড মডেলগুলো সিলেক্টরে আসবে</p>
+            </div>` : ''}`;
+        // Gemini-only: মডেল লোড করুন button
+        if (isGemini) {
+            const loadBtn = document.getElementById('btn-load-gemini-models');
+            if (loadBtn) lucide.createIcons({ nodes: [loadBtn] });
+        }
         lucide.createIcons();
+    }
+
+    async function fetchGeminiModels() {
+        const keys = loadApiKeys('gemini');
+        const activeId = getActiveKeyId('gemini');
+        const activeKey = keys.find(k => k.id === activeId);
+        const inputKey = document.getElementById('api-key-value-input')?.value?.trim();
+        const apiKey = activeKey?.key || inputKey;
+
+        if (!apiKey) {
+            addAIMessage('assistant', '⚠️ আগে একটি Gemini API Key যোগ করুন।');
+            saveAIChatHistory();
+            return;
+        }
+
+        const btn = document.getElementById('btn-load-gemini-models') || document.getElementById('btn-load-gemini-models-modal');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="h-3 w-3 animate-spin inline-block mr-1"></i> লোড হচ্ছে...';
+            lucide.createIcons({ nodes: [btn] });
+        }
+
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error?.message || 'API Error ' + res.status);
+            }
+            const data = await res.json();
+            const supported = (data.models || []).filter(m =>
+                m.supportedGenerationMethods?.includes('generateContent')
+            );
+
+            if (!supported.length) {
+                addAIMessage('assistant', '⚠️ কোনো উপযুক্ত মডেল পাওয়া যায়নি।');
+                saveAIChatHistory();
+                return;
+            }
+
+            // Update model list
+            AI_PROVIDERS.gemini.models = supported.map(m => ({
+                id: m.name.replace('models/', ''),
+                label: m.displayName || m.name.replace('models/', '')
+            }));
+
+            // Save fetched models
+            try { localStorage.setItem('sp_gemini_fetched_models', JSON.stringify(AI_PROVIDERS.gemini.models)); } catch(e) {}
+
+            // Repopulate selector
+            populateModelSelector('gemini');
+
+            addAIMessage('assistant', `✅ ${supported.length}টি Gemini মডেল লোড হয়েছে! মডেল সিলেক্টর থেকে পছন্দের মডেল বেছে নিন।`);
+            saveAIChatHistory();
+        } catch(e) {
+            addAIMessage('assistant', `❌ মডেল লোড ব্যর্থ: ${e.message}`);
+            saveAIChatHistory();
+        } finally {
+            const doneBtn = document.getElementById('btn-load-gemini-models') || document.getElementById('btn-load-gemini-models-modal');
+            if (doneBtn) {
+                doneBtn.disabled = false;
+                doneBtn.innerHTML = '<i data-lucide="refresh-cw" class="h-3 w-3 inline-block mr-1"></i> মডেল লোড করুন';
+                lucide.createIcons({ nodes: [doneBtn] });
+            }
+        }
+    }
+
+    function renderKeyButtons() {
+        const container = document.getElementById('ai-key-buttons');
+        if (!container) return;
+        const keys = loadApiKeys(aiProvider);
+        const activeId = getActiveKeyId(aiProvider);
+        if (!keys.length) {
+            container.innerHTML = '<span class="text-[10px] text-gray-400 whitespace-nowrap">কোনো key নেই 🔑</span>';
+            return;
+        }
+        container.innerHTML = keys.map(k => {
+            const isActive = k.id === activeId;
+            return `<button onclick="quickSwitchKey('${k.id}')"
+                class="flex-shrink-0 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all whitespace-nowrap
+                ${isActive
+                    ? 'bg-green-500 text-white border border-green-500 shadow-sm'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-amber-400 hover:text-amber-600'}"
+                title="${k.key.substring(0,12)}…">
+                ${isActive ? '● ' : ''}${k.label}
+            </button>`;
+        }).join('');
+    }
+
+    function quickSwitchKey(keyId) {
+        setActiveKeyId(aiProvider, keyId);
+        renderKeyButtons();
+        renderApiKeyManager();
     }
 
     function addApiKey() {
@@ -7308,9 +8071,9 @@ answer = সঠিক বিকল্পের index (0-3)`;
         const newKey = { id: 'key_' + Date.now(), label: label || ('Key ' + (keys.length + 1)), key: key };
         keys.push(newKey);
         saveApiKeys(aiProvider, keys);
-        // If first key, make active
         if (keys.length === 1) setActiveKeyId(aiProvider, newKey.id);
         renderApiKeyManager();
+        renderKeyButtons();
         addAIMessage('assistant', `✅ ${AI_PROVIDERS[aiProvider].emoji} "${newKey.label}" সংরক্ষিত হয়েছে।`);
         saveAIChatHistory();
     }
@@ -7320,6 +8083,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
         const keys = loadApiKeys(aiProvider);
         const k = keys.find(x => x.id === keyId);
         renderApiKeyManager();
+        renderKeyButtons();
         addAIMessage('assistant', `🔄 "${k?.label}" সক্রিয় করা হয়েছে।`);
         saveAIChatHistory();
     }
@@ -7329,6 +8093,49 @@ answer = সঠিক বিকল্পের index (0-3)`;
         saveApiKeys(aiProvider, keys);
         if (getActiveKeyId(aiProvider) === keyId && keys.length) {
             setActiveKeyId(aiProvider, keys[0].id);
+        }
+        renderApiKeyManager();
+        renderKeyButtons();
+    }
+
+    function toggleKeyVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.setAttribute('data-lucide', isHidden ? 'eye-off' : 'eye');
+            lucide.createIcons({ nodes: [icon] });
+        }
+    }
+
+    function editApiKey(keyId) {
+        // Hide any other open edit forms first
+        document.querySelectorAll('[id^="key-edit-"]').forEach(el => el.classList.add('hidden'));
+        const form = document.getElementById('key-edit-' + keyId);
+        if (form) {
+            form.classList.remove('hidden');
+            form.style.display = 'flex';
+            document.getElementById('edit-key-' + keyId)?.focus();
+        }
+    }
+
+    function cancelEditApiKey(keyId) {
+        const form = document.getElementById('key-edit-' + keyId);
+        if (form) { form.classList.add('hidden'); form.style.display = ''; }
+    }
+
+    function saveEditedApiKey(keyId) {
+        const newLabel = (document.getElementById('edit-label-' + keyId)?.value || '').trim();
+        const newKey   = (document.getElementById('edit-key-' + keyId)?.value || '').trim();
+        if (!newKey) return;
+        const keys = loadApiKeys(aiProvider);
+        const idx = keys.findIndex(k => k.id === keyId);
+        if (idx >= 0) {
+            keys[idx].label = newLabel || keys[idx].label;
+            keys[idx].key   = newKey;
+            saveApiKeys(aiProvider, keys);
         }
         renderApiKeyManager();
     }
@@ -7350,7 +8157,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
             name: 'Google Gemini', emoji: '🔵',
             keyStorage: 'sp_gemini_key',
             keyPlaceholder: 'AIza...',
-            keyHint: '🔗 aistudio.google.com → "Get API key" → ফ্রি',
+            keyHint: 'aistudio.google.com/app/api-keys',
             models: [
                 { id: 'gemini-2.5-flash-preview-04-17', label: 'Gemini 2.5 Flash (নতুন)' },
                 { id: 'gemini-2.0-flash',         label: 'Gemini 2.0 Flash (দ্রুত)' },
@@ -7364,7 +8171,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
                     parts: [{ text: m.content }]
                 }));
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                const bodyObj = { contents: gemMsgs, generationConfig: { maxOutputTokens: 1024, temperature: 0.7 } };
+                const bodyObj = { contents: gemMsgs, generationConfig: { temperature: 0.7 } };
                 if (system) bodyObj.system_instruction = { parts: [{ text: system }] };
                 const res = await fetch(url, {
                     method: 'POST',
@@ -7380,7 +8187,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
             name: 'Groq', emoji: '🟠',
             keyStorage: 'sp_groq_key',
             keyPlaceholder: 'gsk_...',
-            keyHint: '🔗 console.groq.com → "API Keys" → ফ্রি',
+            keyHint: 'console.groq.com/keys',
             models: [
                 { id: 'llama-3.3-70b-versatile',  label: 'Llama 3.3 70B (সেরা)' },
                 { id: 'llama-3.1-8b-instant',      label: 'Llama 3.1 8B (দ্রুত)' },
@@ -7394,7 +8201,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
                     body: JSON.stringify({
                         model: model,
                         messages: system ? [{ role: 'system', content: system }, ...messages] : messages,
-                        max_tokens: 1024, temperature: 0.7
+                        temperature: 0.7
                     })
                 });
                 const data = await res.json();
@@ -7414,8 +8221,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
     // ── Persist chat history per chapter ──
     function saveAIChatHistory() {
         try { localStorage.setItem(getAIChatStoreKey(), JSON.stringify(aiChatHistory)); } catch(e) {}
-        // Also save to multi-conversation store
-        if (typeof saveCurrentConversation === 'function') saveCurrentConversation();
+        // NOTE: saveCurrentConversation is called explicitly after full exchange, not here
     }
     function loadAIChatHistory() {
         try {
@@ -7429,6 +8235,16 @@ answer = সঠিক বিকল্পের index (0-3)`;
         const sel = document.getElementById('ai-model-select');
         if (!sel) return;
         const prov = AI_PROVIDERS[provId];
+        // Gemini: যদি আগে fetch করা models থাকে তাহলে সেগুলো ব্যবহার করো
+        if (provId === 'gemini') {
+            try {
+                const saved = localStorage.getItem('sp_gemini_fetched_models');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.length) AI_PROVIDERS.gemini.models = parsed;
+                }
+            } catch(e) {}
+        }
         sel.innerHTML = prov.models.map(m => `<option value="${m.id}">${m.label}</option>`).join('');
         // Restore saved model
         const saved = localStorage.getItem('sp_ai_model_' + provId);
@@ -7461,19 +8277,169 @@ answer = সঠিক বিকল্পের index (0-3)`;
         // Fill existing key if any
         const input = document.getElementById('ai-api-key-input');
         if (input) { input.placeholder = prov.keyPlaceholder; input.value = ''; }
+
+        // If key panel is already open, re-render it for the new provider
+        const banner = document.getElementById('ai-api-key-banner');
+        if (banner && !banner.classList.contains('hidden')) {
+            if (typeof renderApiKeyManager === 'function') renderApiKeyManager();
+        }
+        renderKeyButtons();
     }
 
     function toggleAIKeyPanel() {
-        const banner = document.getElementById('ai-api-key-banner');
-        if (!banner) return;
-        if (banner.classList.contains('hidden')) {
-            banner.classList.remove('hidden');
-            // Render multi-key manager if available
-            if (typeof renderApiKeyManager === 'function') renderApiKeyManager();
-            else selectAIProvider(aiProvider);
-        } else {
-            banner.classList.add('hidden');
+        openApiKeyModal();
+    }
+
+    function openApiKeyModal() {
+        _updateModalProviderPills(aiProvider);
+        renderApiKeyManagerModal();
+        openModal('modal-api-keys');
+    }
+
+    function switchModalProvider(provId) {
+        selectAIProvider(provId);
+        _updateModalProviderPills(provId);
+        const prov = AI_PROVIDERS[provId];
+        const subtitle = document.getElementById('api-key-modal-subtitle');
+        if (subtitle) subtitle.textContent = prov.keyHint;
+        renderApiKeyManagerModal();
+    }
+
+    function _updateModalProviderPills(provId) {
+        document.querySelectorAll('.modal-provider-pill').forEach(b => {
+            b.className = 'modal-provider-pill px-2.5 py-1 text-[11px] font-medium rounded-md transition-all text-gray-500 dark:text-gray-400';
+        });
+        const active = document.getElementById('modal-pill-' + provId);
+        if (active) {
+            active.className = 'modal-provider-pill px-2.5 py-1 text-[11px] font-medium rounded-md transition-all bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm';
         }
+        const subtitle = document.getElementById('api-key-modal-subtitle');
+        if (subtitle) {
+            const url = AI_PROVIDERS[provId]?.keyHint || '';
+            subtitle.innerHTML = url ? `<a href="https://${url}" target="_blank" class="underline hover:text-amber-500 transition">${url}</a>` : '';
+        }
+    }
+
+    function closeApiKeyModal(e) {
+        // backdrop click closes
+        if (!e || e.target === document.getElementById('modal-api-keys')) {
+            closeModal('modal-api-keys');
+        }
+    }
+
+    function renderApiKeyManagerModal() {
+        const container = document.getElementById('api-key-modal-body');
+        if (!container) return;
+        const prov = AI_PROVIDERS[aiProvider];
+        const keys = loadApiKeys(aiProvider);
+        const activeId = getActiveKeyId(aiProvider);
+        const isGemini = aiProvider === 'gemini';
+
+        container.innerHTML = `
+            ${keys.length ? `<div class="space-y-2 mb-4">
+                ${keys.map(k => `
+                    <div id="modal-key-row-${k.id}">
+                        <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl ${k.id===activeId ? 'bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700' : 'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700'}">
+                            <button onclick="switchApiKeyModal('${k.id}')" class="flex-grow text-left min-w-0">
+                                <span class="text-sm font-semibold ${k.id===activeId ? 'text-green-700 dark:text-green-300' : 'text-gray-700 dark:text-gray-200'}">${k.label}</span>
+                                <p class="text-[10px] text-gray-400 font-mono mt-0.5 break-all">${k.key}</p>
+                            </button>
+                            <button onclick="editApiKeyModal('${k.id}')" title="এডিট" class="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition"><i data-lucide="pencil" class="h-3.5 w-3.5"></i></button>
+                            <button onclick="deleteApiKeyModal('${k.id}')" title="মুছুন" class="flex-shrink-0 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
+                        </div>
+                        <div id="modal-key-edit-${k.id}" class="hidden mt-1.5 flex gap-1.5 px-1">
+                            <input type="text" id="modal-edit-label-${k.id}" value="${k.label}" placeholder="নাম" class="w-20 px-2 py-1.5 text-xs border border-amber-300 dark:border-amber-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400">
+                            <div class="flex-grow relative">
+                                <input type="text" id="modal-edit-key-${k.id}" value="${k.key}" placeholder="API Key" class="w-full pr-7 px-2 py-1.5 text-xs border border-amber-300 dark:border-amber-600 rounded-lg dark:bg-gray-800 dark:text-white outline-none focus:ring-1 focus:ring-amber-400 font-mono">
+                                <button type="button" onclick="toggleKeyVisibility('modal-edit-key-${k.id}', this)" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i data-lucide="eye-off" class="h-3 w-3"></i>
+                                </button>
+                            </div>
+                            <button onclick="saveEditedApiKeyModal('${k.id}')" class="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg transition font-semibold flex-shrink-0">সেভ</button>
+                            <button onclick="cancelEditApiKeyModal('${k.id}')" class="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-lg transition flex-shrink-0">বাতিল</button>
+                        </div>
+                    </div>`).join('')}
+            </div>` : `<div class="text-center py-4"><p class="text-sm text-gray-400 mb-2">কোনো key সংরক্ষিত নেই।</p><a href="https://${prov.keyHint}" target="_blank" class="text-xs text-blue-500 hover:text-blue-600 underline">${prov.keyHint}</a></div>`}
+
+            <!-- Add new key -->
+            <div class="border-t border-gray-100 dark:border-gray-800 pt-3">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">নতুন Key যোগ করুন</p>
+                <div class="flex gap-1.5 mb-1.5">
+                    <input type="text" id="modal-api-key-label" placeholder="নাম (Key 1)" class="w-24 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-400">
+                    <div class="relative flex-grow">
+                        <input type="password" id="modal-api-key-value" placeholder="${prov.keyPlaceholder}" class="w-full pr-8 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-400 font-mono">
+                        <button type="button" onclick="toggleKeyVisibility('modal-api-key-value', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                    <button onclick="addApiKeyModal()" class="px-3 py-2 bg-amber-600 text-white text-xs rounded-xl hover:bg-amber-700 transition font-semibold flex-shrink-0">যোগ করুন</button>
+                </div>
+            </div>
+
+            ${isGemini ? `
+            <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <button id="btn-load-gemini-models-modal" onclick="fetchGeminiModels()" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition">
+                    <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i> মডেল লোড করুন
+                </button>
+                <p class="text-[10px] text-gray-400 mt-1.5 text-center">Active key দিয়ে supported মডেলগুলো সিলেক্টরে আনবে</p>
+            </div>` : ''}`;
+
+        lucide.createIcons();
+    }
+
+    function switchApiKeyModal(keyId) {
+        setActiveKeyId(aiProvider, keyId);
+        const keys = loadApiKeys(aiProvider);
+        const k = keys.find(x => x.id === keyId);
+        renderApiKeyManagerModal();
+        renderKeyButtons();
+        addAIMessage('assistant', `🔄 "${k?.label}" সক্রিয় করা হয়েছে।`);
+        saveAIChatHistory();
+    }
+
+    function addApiKeyModal() {
+        const label = (document.getElementById('modal-api-key-label')?.value || '').trim();
+        const key   = (document.getElementById('modal-api-key-value')?.value || '').trim();
+        if (!key) return;
+        const keys = loadApiKeys(aiProvider);
+        const newKey = { id: 'key_' + Date.now(), label: label || ('Key ' + (keys.length + 1)), key };
+        keys.push(newKey);
+        saveApiKeys(aiProvider, keys);
+        if (keys.length === 1) setActiveKeyId(aiProvider, newKey.id);
+        renderApiKeyManagerModal();
+        renderKeyButtons();
+        addAIMessage('assistant', `✅ ${AI_PROVIDERS[aiProvider].emoji} "${newKey.label}" সংরক্ষিত হয়েছে।`);
+        saveAIChatHistory();
+    }
+
+    function deleteApiKeyModal(keyId) {
+        let keys = loadApiKeys(aiProvider).filter(k => k.id !== keyId);
+        saveApiKeys(aiProvider, keys);
+        if (getActiveKeyId(aiProvider) === keyId && keys.length) setActiveKeyId(aiProvider, keys[0].id);
+        renderApiKeyManagerModal();
+        renderKeyButtons();
+    }
+
+    function editApiKeyModal(keyId) {
+        document.querySelectorAll('[id^="modal-key-edit-"]').forEach(el => { el.classList.add('hidden'); el.style.display = ''; });
+        const form = document.getElementById('modal-key-edit-' + keyId);
+        if (form) { form.classList.remove('hidden'); form.style.display = 'flex'; document.getElementById('modal-edit-key-' + keyId)?.focus(); }
+    }
+
+    function cancelEditApiKeyModal(keyId) {
+        const form = document.getElementById('modal-key-edit-' + keyId);
+        if (form) { form.classList.add('hidden'); form.style.display = ''; }
+    }
+
+    function saveEditedApiKeyModal(keyId) {
+        const newLabel = (document.getElementById('modal-edit-label-' + keyId)?.value || '').trim();
+        const newKey   = (document.getElementById('modal-edit-key-'   + keyId)?.value || '').trim();
+        if (!newKey) return;
+        const keys = loadApiKeys(aiProvider);
+        const idx = keys.findIndex(k => k.id === keyId);
+        if (idx >= 0) { keys[idx].label = newLabel || keys[idx].label; keys[idx].key = newKey; saveApiKeys(aiProvider, keys); }
+        renderApiKeyManagerModal();
+        renderKeyButtons();
     }
 
     function saveAIApiKey() {
@@ -7490,8 +8456,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
     // ── Init ──
     function initAIChat() {
         aiProvider = localStorage.getItem('sp_ai_provider') || 'gemini';
-        if (!aiCurrentConvId) aiCurrentConvId = 'conv_' + Date.now();
-        aiSendMode = 'plain'; // always default to plain mode (reset each session)
+        aiSendMode = 'plain';
 
         // Set up provider pills + model dropdown
         selectAIProvider(aiProvider);
@@ -7508,29 +8473,72 @@ answer = সঠিক বিকল্পের index (0-3)`;
                 : 'কোন অধ্যায় নির্বাচিত নেই';
         }
 
-        // Restore chat history for this chapter
-        const saved = loadAIChatHistory();
         const container = document.getElementById('ai-chat-messages');
-        if (container && saved.length) {
-            aiChatHistory = saved;
-            container.innerHTML = '';
-            // Re-render messages
-            aiChatHistory.forEach(m => _renderMessage(m.role, m.content, container));
-        } else if (container && !saved.length) {
+        const chapterId = currentChapterNode?.id || 'global';
+        const allConvs = loadAllConversations();
+
+        // If aiCurrentConvId is set but belongs to a DIFFERENT chapter — reset it
+        const currentConv = allConvs.find(c => c.id === aiCurrentConvId);
+        const currentBelongsHere = currentConv && (currentConv.chapterId === chapterId);
+
+        if (!currentBelongsHere && aiCurrentConvId) {
+            // Chapter changed — clear current session
+            aiCurrentConvId = null;
             aiChatHistory = [];
-            container.innerHTML = `
-                <div class="flex gap-2 items-start">
-                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold shadow">AI</div>
-                    <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%]">
-                        <p class="text-sm text-gray-700 dark:text-gray-200">আমি আপনার AI টিউটর! অধ্যায় নির্বাচন করে যেকোনো প্রশ্ন করুন। 📚</p>
-                    </div>
-                </div>`;
         }
+
+        if (currentBelongsHere) {
+            // Already in the right conversation — just re-render if needed
+            if (container && container.children.length <= 1) {
+                container.innerHTML = '';
+                aiChatHistory.forEach(m => _renderMessage(m.role, m.content, container));
+                container.scrollTop = container.scrollHeight;
+            }
+        } else if (!aiCurrentConvId) {
+            // No active conversation — check if there's an existing one for this chapter
+            const chapterConvs = allConvs.filter(c => c.chapterId === chapterId).sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+            const existingConv = chapterConvs[0] || null;
+            if (existingConv) {
+                aiCurrentConvId = existingConv.id;
+                aiChatHistory = existingConv.messages || [];
+                if (container) {
+                    container.innerHTML = '';
+                    aiChatHistory.forEach(m => _renderMessage(m.role, m.content, container));
+                    container.scrollTop = container.scrollHeight;
+                }
+            } else {
+                // Brand new
+                aiCurrentConvId = 'conv_' + Date.now();
+                aiChatHistory = [];
+                if (container) {
+                    container.innerHTML = `
+                    <div class="flex gap-2 items-start">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold shadow">AI</div>
+                        <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%]">
+                            <p class="text-sm text-gray-700 dark:text-gray-200">আমি আপনার AI টিউটর! অধ্যায় নির্বাচন করে যেকোনো প্রশ্ন করুন। 📚</p>
+                        </div>
+                    </div>`;
+                }
+            }
+        }
+        // else: aiCurrentConvId set but for a different chapter — keep it as is (user manually navigated)
 
         const cb = document.getElementById('content-body');
         if (cb) cb.style.overflowY = 'hidden';
         const el = document.getElementById('tab-content-aichat');
-        if (el) { el.classList.remove('hidden'); el.style.display = 'flex'; el.style.flexDirection = 'column'; }
+        if (el) { el.classList.remove('hidden'); el.style.display = 'flex'; el.style.flexDirection = 'row'; }
+
+        // Auto-load sidebar conversations and keep it open
+        renderConversationsList();
+        const sidebar = document.getElementById('ai-chat-sidebar-inline');
+        if (sidebar) {
+            sidebar.style.display = 'flex';
+            sidebar.style.width = '160px';
+            sidebar.style.minWidth = '160px';
+            _aiSidebarCollapsed = false;
+            sidebar.querySelectorAll('.ai-sidebar-label').forEach(el => el.style.display = '');
+        }
+        _updateSidebarToggleBtnStyle();
 
         lucide.createIcons();
         updateAIModeUI();
@@ -7582,22 +8590,56 @@ answer = সঠিক বিকল্পের index (0-3)`;
         }
     }
 
-    function toggleAIPlusMenu() {
-        const menu = document.getElementById('ai-plus-menu');
-        if (!menu) return;
-        const isHidden = menu.classList.toggle('hidden');
-        // Close on outside click
-        if (!isHidden) {
-            setTimeout(() => {
-                document.addEventListener('click', function _close(e) {
-                    if (!document.getElementById('ai-plus-wrapper')?.contains(e.target)) {
-                        menu.classList.add('hidden');
-                        document.removeEventListener('click', _close);
-                    }
-                });
-            }, 10);
+    function toggleAISourceBox() {
+        const box = document.getElementById('ai-source-box');
+        const btn = document.getElementById('ai-plus-btn');
+        if (!box) return;
+        const isHidden = box.classList.contains('hidden');
+        if (isHidden) {
+            box.classList.remove('hidden');
+            box.style.display = 'block';
+            btn.style.borderColor = '#818cf8';
+            btn.style.color = '#4f46e5';
+            btn.style.background = '#eef2ff';
+            document.getElementById('ai-source-textarea')?.focus();
+            updateAISourceHint();
+        } else {
+            clearAISource();
         }
     }
+
+    function clearAISource() {
+        const box = document.getElementById('ai-source-box');
+        const btn = document.getElementById('ai-plus-btn');
+        const ta = document.getElementById('ai-source-textarea');
+        const quickPrompts = document.getElementById('ai-quick-prompts');
+        if (box) { box.classList.add('hidden'); box.style.display = ''; }
+        if (ta) ta.value = '';
+        if (btn) { btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+        if (quickPrompts) quickPrompts.style.display = 'none';
+    }
+
+    function updateAISourceHint() {
+        const ta = document.getElementById('ai-source-textarea');
+        const hint = document.getElementById('ai-source-token-hint');
+        const quickPrompts = document.getElementById('ai-quick-prompts');
+        if (ta && hint) {
+            const len = ta.value.length;
+            hint.textContent = len > 0 ? `~${Math.round(len / 3.5)} token` : '';
+        }
+        // Show quick prompts only when source has content
+        if (quickPrompts) {
+            const hasSource = ta && ta.value.trim().length > 0;
+            quickPrompts.style.display = hasSource ? 'flex' : 'none';
+        }
+    }
+
+    function getAISourceText() {
+        const ta = document.getElementById('ai-source-textarea');
+        return ta ? ta.value.trim() : '';
+    }
+
+    function toggleAIPlusMenu() { toggleAISourceBox(); }
 
     function setAIModeFromMenu(mode) {
         document.getElementById('ai-plus-menu')?.classList.add('hidden');
@@ -7681,34 +8723,23 @@ answer = সঠিক বিকল্পের index (0-3)`;
     }
 
     function buildAIPayload(userText) {
-        // ── PLAIN: শুধুমাত্র ইউজারের প্রম্পট — আর কিছুই না ──
-        if (aiSendMode === 'plain') {
+        const sourceText = getAISourceText();
+
+        // সোর্স না থাকলে — শুধু ইউজারের প্রম্পট
+        if (!sourceText) {
             return {
                 system: '',
                 messages: [{ role: 'user', content: userText }],
                 tokenEstimate: Math.round(userText.length / 3.5)
             };
         }
-        // ── WITH SOURCE: প্রম্পট + অধ্যায়ের লেখা — history নেই ──
-        if (aiSendMode === 'source') {
-            const src = _getSourceBlock();
-            const msg = userText + src;
-            return {
-                system: 'নিচে দেওয়া Source Text-এর ভিত্তিতে প্রশ্নের উত্তর দাও।',
-                messages: [{ role: 'user', content: msg }],
-                tokenEstimate: Math.round(msg.length / 3.5)
-            };
-        }
-        // ── WITH CONTEXT: প্রম্পট + লেখা + শেষ ৮টি history ──
-        const src = _getSourceBlock();
-        const MAX_H = 8;
-        const prior = aiChatHistory.slice(-(MAX_H + 1), -1);
-        const finalMsg = { role: 'user', content: userText + src };
-        const messages = [...prior, finalMsg];
+
+        // সোর্স থাকলে — প্রম্পট + সোর্স
+        const msg = userText + '\n\n--- Source Text ---\n' + sourceText.substring(0, 4000);
         return {
-            system: 'নিচে দেওয়া Source Text ও আগের কথোপকথনের ভিত্তিতে প্রশ্নের উত্তর দাও।',
-            messages,
-            tokenEstimate: Math.round(messages.reduce((s,m) => s + m.content.length, 0) / 3.5)
+            system: 'নিচে দেওয়া Source Text-এর ভিত্তিতে প্রশ্নের উত্তর দাও।',
+            messages: [{ role: 'user', content: msg }],
+            tokenEstimate: Math.round(msg.length / 3.5)
         };
     }
 
@@ -7726,13 +8757,40 @@ answer = সঠিক বিকল্পের index (0-3)`;
             </div>`;
     }
 
+    function deleteCurrentConversation() {
+        if (!aiCurrentConvId) { newAIChat(); return; }
+        showWarningModal({
+            title: 'এই কনভারসেশন মুছবেন?',
+            desc: 'বর্তমান চ্যাটটি স্থায়ীভাবে মুছে যাবে এবং একটি নতুন চ্যাট শুরু হবে।',
+            confirmLabel: 'মুছুন',
+            onConfirm: () => {
+                const convs = loadAllConversations().filter(c => c.id !== aiCurrentConvId);
+                saveAllConversations(convs);
+                try { localStorage.removeItem(getAIChatStoreKey()); } catch(e) {}
+                aiCurrentConvId = null;
+                aiChatHistory = [];
+                newAIChat();
+            }
+        });
+    }
+
     function _formatMD(text) {
+        if (!text) return '';
+        if (typeof marked !== 'undefined') {
+            // marked দিয়ে full markdown parse
+            return marked.parse(text);
+        }
+        // Fallback যদি marked না থাকে
         return (text || '')
             .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-            .replace(/\n/g,'<br>')
+            .replace(/^### (.+)$/gm,'<h3 class="text-base font-bold mt-3 mb-1">$1</h3>')
+            .replace(/^## (.+)$/gm,'<h2 class="text-lg font-bold mt-3 mb-1">$2</h2>')
+            .replace(/^# (.+)$/gm,'<h1 class="text-xl font-bold mt-3 mb-1">$1</h1>')
+            .replace(/^---+$/gm,'<hr class="border-gray-300 dark:border-gray-600 my-2">')
             .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
             .replace(/\*(.*?)\*/g,'<em>$1</em>')
-            .replace(/`([^`]+)`/g,'<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded text-xs font-mono">$1</code>');
+            .replace(/`([^`]+)`/g,'<code class="bg-gray-200 dark:bg-gray-700 px-1 rounded text-xs font-mono">$1</code>')
+            .replace(/\n/g,'<br>');
     }
 
     function _renderMessage(role, text, container) {
@@ -7743,7 +8801,7 @@ answer = সঠিক বিকল্পের index (0-3)`;
             ? `<div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0 text-indigo-600 dark:text-indigo-300 text-[10px] font-bold">আপ</div>
                <div class="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-3 py-2.5 max-w-[88%] text-sm leading-relaxed">${_formatMD(text)}</div>`
             : `<div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold shadow">AI</div>
-               <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] text-sm text-gray-700 dark:text-gray-200 leading-relaxed">${_formatMD(text)}</div>`;
+               <div class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-3 py-2.5 max-w-[88%] text-sm text-gray-700 dark:text-gray-200 leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:mt-2 prose-headings:mb-1 prose-hr:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">${_formatMD(text)}</div>`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     }
@@ -7811,6 +8869,8 @@ answer = সঠিক বিকল্পের index (0-3)`;
             aiChatHistory.push({ role: 'assistant', content: reply });
             saveAIChatHistory();
             addAIMessage('assistant', reply);
+            saveCurrentConversation();
+            renderConversationsList();
         } catch(err) {
             typingEl?.remove();
             const msg = err.message || '';
@@ -7822,7 +8882,8 @@ answer = সঠিক বিকল্পের index (0-3)`;
             } else {
                 addAIMessage('assistant', `❌ সমস্যা: ${msg || 'ইন্টারনেট সংযোগ চেক করুন।'}`);
             }
-            saveAIChatHistory();
+            saveCurrentConversation();
+            renderConversationsList();
         }
 
         aiIsTyping = false;
@@ -7865,19 +8926,33 @@ answer = সঠিক বিকল্পের index (0-3)`;
         document.querySelectorAll('.mob-rtab').forEach(b => {
             b.style.background = '';
             b.style.color = '';
+            b.style.border = '';
+            b.style.borderRadius = '';
             b.classList.remove('mob-rtab-on');
         });
         const el = document.getElementById(id);
         if (el) {
-            el.style.background = 'rgba(255,255,255,0.15)';
+            const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4f46e5';
+            el.style.background = accent;
             el.style.color = 'white';
+            el.style.border = 'none';
+            el.style.borderRadius = '10px';
             el.classList.add('mob-rtab-on');
         }
     }
 
     window.addEventListener('resize', updateMobileNav);
 
-    function _setMobNavActive(id) { /* no highlight — buttons don't need active state */ }
+    function _setMobNavActive(id) {
+        // বিষয় লিস্টে active highlight দেখাবে না
+        if (id === 'mob-nav-subjects') {
+            document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('mob-active'));
+            return;
+        }
+        document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('mob-active'));
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.add('mob-active');
+    }
 
     </script>
 
